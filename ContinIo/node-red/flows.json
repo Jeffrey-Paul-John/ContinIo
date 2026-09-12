@@ -1,0 +1,1773 @@
+[
+  {
+    "id": "52ae7c11408663f5",
+    "type": "tab",
+    "label": "ContinIo Dashboard Final",
+    "disabled": false,
+    "info": "ContinIo UI at /dashboard with non-conflicting HTTP APIs at /continio-api."
+  },
+  {
+    "id": "f16557447a684662",
+    "type": "ui-base",
+    "name": "ContinIo",
+    "path": "/dashboard",
+    "appIcon": "",
+    "includeClientData": true,
+    "acceptsClientConfig": [
+      "ui-notification",
+      "ui-control",
+      "ui-template"
+    ],
+    "showPathInSidebar": false,
+    "headerContent": "page",
+    "navigationStyle": "temporary",
+    "titleBarStyle": "default",
+    "showReconnectNotification": true,
+    "notificationDisplayTime": 2,
+    "showDisconnectNotification": true,
+    "allowInstall": false
+  },
+  {
+    "id": "46097d10e2c95a51",
+    "type": "ui-theme",
+    "name": "ContinIo Orange",
+    "colors": {
+      "surface": "#ffffff",
+      "primary": "#f97316",
+      "bgPage": "#fff7ed",
+      "groupBg": "#ffffff",
+      "groupOutline": "#fed7aa"
+    },
+    "sizes": {
+      "density": "default",
+      "pagePadding": "18px",
+      "groupGap": "14px",
+      "groupBorderRadius": "20px",
+      "widgetGap": "12px"
+    }
+  },
+  {
+    "id": "14f0a05c9c2f1ab2",
+    "type": "ui-page",
+    "name": "ContinIo Admin",
+    "ui": "f16557447a684662",
+    "path": "/admin",
+    "icon": "view-dashboard",
+    "layout": "grid",
+    "theme": "46097d10e2c95a51",
+    "breakpoints": [
+      {
+        "name": "Default",
+        "px": 0,
+        "cols": 3
+      },
+      {
+        "name": "Tablet",
+        "px": 576,
+        "cols": 6
+      },
+      {
+        "name": "Small Desktop",
+        "px": 768,
+        "cols": 9
+      },
+      {
+        "name": "Desktop",
+        "px": 1024,
+        "cols": 12
+      }
+    ],
+    "order": 1,
+    "className": "",
+    "visible": true,
+    "disabled": false
+  },
+  {
+    "id": "37b983b0538a28a1",
+    "type": "ui-group",
+    "name": "Admin Portal",
+    "page": "14f0a05c9c2f1ab2",
+    "width": 12,
+    "height": 12,
+    "order": 1,
+    "showTitle": false,
+    "className": "",
+    "visible": true,
+    "disabled": false,
+    "groupType": "default"
+  },
+  {
+    "id": "8173fa5e22f4b390",
+    "type": "ui-template",
+    "z": "52ae7c11408663f5",
+    "group": "37b983b0538a28a1",
+    "page": "",
+    "ui": "",
+    "name": "ContinIo Admin Application",
+    "order": 1,
+    "width": 12,
+    "height": 12,
+    "head": "",
+    "format": "<template>\n  <div class=\"dashboard-app\">\n    <header class=\"hero\">\n      <div>\n        <div class=\"eyebrow\">SMART ATTENDANCE SYSTEM</div>\n        <h1>ContinIo</h1>\n        <p>Admin control centre</p>\n      </div>\n      <div class=\"admin-actions\"><span v-if=\"adminUser.name\">{{ adminUser.name }}</span><v-btn color=\"white\" variant=\"outlined\" prepend-icon=\"mdi-refresh\" @click=\"loadAll\">Refresh</v-btn><v-btn color=\"white\" variant=\"flat\" prepend-icon=\"mdi-logout\" @click=\"logout\">Logout</v-btn></div>\n    </header>\n\n    <nav class=\"tabs\">\n      <button v-for=\"item in nav\" :key=\"item.key\" :class=\"{active:view===item.key}\" @click=\"open(item.key)\">\n        <v-icon :icon=\"item.icon\" size=\"20\"></v-icon><span>{{ item.label }}</span>\n      </button>\n    </nav>\n\n    <div v-if=\"notice\" class=\"notice\" :class=\"noticeType\">{{ notice }}</div>\n\n    <section v-if=\"view==='home'\">\n      <div class=\"stats\">\n        <article v-for=\"card in cards\" :key=\"card.label\" @click=\"open(card.key)\">\n          <v-icon :icon=\"card.icon\" size=\"34\"></v-icon>\n          <strong>{{ card.value }}</strong><span>{{ card.label }}</span>\n        </article>\n      </div>\n      <div class=\"panel welcome\">\n        <h2>System overview</h2>\n        <p>Use the menu above to manage students, teachers, timetable, attendance and rooms.</p>\n        <div class=\"status\"><i></i> Database connected when records load successfully</div>\n      </div>\n    </section>\n\n    <section v-if=\"view==='students'\" class=\"panel\">\n      <div class=\"panel-head\"><div><h2>Students</h2><p>Registered students and privacy-safe face enrollment</p></div><button class=\"primary\" @click=\"showStudentForm=!showStudentForm\">+ Add student</button></div>\n      <div class=\"service-card\" :class=\"faceService.online?'service-online':'service-offline'\"><div><strong>Face service: {{faceService.online?'Online':'Offline'}}</strong><span>{{faceService.online?'Enrollment and room cameras are available.':'Start Start_ContinIo_Telegram.command, then retry.'}}</span></div><button class=\"secondary\" @click=\"checkFaceService\">Retry connection</button></div>\n      <form v-if=\"showStudentForm\" class=\"form-grid\" @submit.prevent=\"addStudent\">\n        <input v-model.trim=\"studentForm.name\" placeholder=\"Student name\" required>\n        <input v-model.trim=\"studentForm.usn\" placeholder=\"USN\" required>\n        <select v-model.number=\"studentForm.class_id\" required><option disabled value=\"\">Select class</option><option v-for=\"c in classes\" :key=\"c.id\" :value=\"c.id\">{{ c.name }}</option></select>\n        <input v-model.trim=\"studentForm.rfid_uid\" placeholder=\"RFID UID (optional for now)\">\n        <label class=\"photo-field\"><span>Student face photo</span><input ref=\"studentPhoto\" type=\"file\" accept=\"image/jpeg,image/png,image/webp\" required @change=\"selectStudentPhoto\"><small>{{studentPhotoName || 'Choose one clear, front-facing photo'}}</small></label>\n        <div class=\"privacy-note\"><strong>No photo is stored.</strong><span>It is converted to an embedding in memory and immediately discarded.</span></div>\n        <button class=\"primary\" type=\"submit\" :disabled=\"!faceService.online||enrollingStudent\">{{!faceService.online ? 'Face service offline' : (enrollingStudent ? 'Generating embedding\u2026' : 'Register student')}}</button>\n        <button class=\"secondary\" type=\"button\" @click=\"showStudentForm=false\">Cancel</button>\n      </form>\n      <input class=\"search\" v-model=\"search.students\" placeholder=\"Search students\u2026\">\n      <div class=\"table-wrap\"><table><thead><tr><th>ID</th><th>Name</th><th>USN</th><th>Class</th><th>RFID UID</th><th>Face</th><th>Status</th><th>Registered</th><th>Action</th></tr></thead>\n        <tbody><tr v-for=\"s in filteredStudents\" :key=\"s.id\"><td>{{s.id}}</td><td>{{s.name}}</td><td>{{s.usn}}</td><td>{{s.class}}</td><td>{{s.rfid_uid||'\u2014'}}</td><td><span class=\"pill\" :class=\"s.face_status==='Enrolled'?'ok':'review-pill'\">{{s.face_status}}</span></td><td><span class=\"pill\" :class=\"s.status==='Active'?'ok':'off'\">{{s.status}}</span></td><td>{{s.registered_at}}</td><td class=\"row-actions\"><button class=\"mini rfid\" @click=\"assignRFID(s)\">{{s.rfid_uid?'Change RFID':'Assign RFID'}}</button><button class=\"mini secondary\" :disabled=\"!faceService.online||enrollingStudentId===s.id\" @click=\"chooseExistingStudentPhoto(s)\">{{enrollingStudentId===s.id?'Processing\u2026':(s.face_status==='Enrolled'?'Re-enroll face':'Enroll face')}}</button><button class=\"mini\" :class=\"s.status==='Active'?'danger':'success'\" @click=\"setStudentStatus(s)\">{{s.status==='Active'?'Deactivate':'Reactivate'}}</button></td></tr></tbody>\n      </table><div v-if=\"!students.length\" class=\"empty\">No students found</div></div>\n    </section>\n\n    <section v-if=\"view==='teachers'\" class=\"panel\">\n      <div class=\"panel-head\"><div><h2>Teachers</h2><p>Teacher accounts registered with ContinIo</p></div></div>\n      <input class=\"search\" v-model=\"search.teachers\" placeholder=\"Search teachers\u2026\">\n      <div class=\"table-wrap\"><table><thead><tr><th>ID</th><th>Name</th><th>Teacher ID</th><th>Email</th><th>Mobile</th><th>Status</th><th>Registered</th><th>Action</th></tr></thead><tbody><tr v-for=\"t in filteredTeachers\" :key=\"t.id\"><td>{{t.id}}</td><td>{{t.name}}</td><td>{{t.teacher_id}}</td><td>{{t.email}}</td><td>{{t.mobile}}</td><td><span class=\"pill\" :class=\"t.status==='Active'?'ok':'off'\">{{t.status}}</span></td><td>{{t.registered_at}}</td><td><button class=\"mini\" :class=\"t.status==='Active'?'danger':'success'\" @click=\"setTeacherStatus(t)\">{{t.status==='Active'?'Deactivate':'Reactivate'}}</button></td></tr></tbody></table><div v-if=\"!filteredTeachers.length\" class=\"empty\">No teachers found</div></div>\n    </section>\n\n    <section v-if=\"view==='timetable'\" class=\"panel\">\n      <div class=\"panel-head\"><div><h2>Timetable</h2><p>Class, period, teacher and room allocation</p></div><button class=\"primary\" @click=\"newTimetable\">+ Add entry</button></div>\n      <form v-if=\"showTimetableForm\" class=\"form-grid\" @submit.prevent=\"saveTimetable\">\n        <select v-model.number=\"timetableForm.class_id\" required><option disabled value=\"\">Class</option><option v-for=\"c in classes\" :key=\"c.id\" :value=\"c.id\">{{c.name}}</option></select>\n        <select v-model=\"timetableForm.day_of_week\" required><option disabled value=\"\">Day</option><option v-for=\"d in days\" :key=\"d\">{{d}}</option></select>\n        <input v-model.number=\"timetableForm.period_number\" type=\"number\" min=\"1\" placeholder=\"Period\" required><input v-model=\"timetableForm.start_time\" type=\"time\" required><input v-model=\"timetableForm.end_time\" type=\"time\" required>\n        <select v-model.number=\"timetableForm.subject_id\" required><option disabled value=\"\">Subject</option><option v-for=\"s in subjects\" :key=\"s.id\" :value=\"s.id\">{{s.name}}</option></select>\n        <select v-model.number=\"timetableForm.teacher_id\" required><option disabled value=\"\">Teacher</option><option v-for=\"t in teachers\" :key=\"t.id\" :value=\"t.id\">{{t.name || t.email || ('Teacher '+t.id)}}</option></select>\n        <select v-model.number=\"timetableForm.room_id\" required><option disabled value=\"\">Room</option><option v-for=\"r in rooms\" :key=\"r.id\" :value=\"r.id\">{{r.room_number}}</option></select>\n        <button class=\"primary\" type=\"submit\">{{timetableForm.id?'Update entry':'Save entry'}}</button><button class=\"secondary\" type=\"button\" @click=\"cancelTimetable\">Cancel</button>\n      </form>\n      <div class=\"table-wrap\"><table><thead><tr><th>ID</th><th>Class</th><th>Day</th><th>Period</th><th>Start</th><th>End</th><th>Subject</th><th>Teacher</th><th>Room</th><th>Status</th><th>Actions</th></tr></thead><tbody><tr v-for=\"x in timetable\" :key=\"x.id\"><td>{{x.id}}</td><td>{{x.class}}</td><td>{{x.day}}</td><td>{{x.period}}</td><td>{{x.start_time}}</td><td>{{x.end_time}}</td><td>{{x.subject}}</td><td>{{x.teacher}}</td><td>{{x.room}}</td><td><span class=\"pill\" :class=\"x.status==='Enabled'?'ok':'off'\">{{x.status}}</span></td><td class=\"row-actions\"><button class=\"mini secondary\" @click=\"editTimetable(x)\">Edit</button><button v-if=\"x.status==='Archived'\" class=\"mini success\" @click=\"restoreTimetable(x)\">Reactivate</button><button v-else class=\"mini danger\" @click=\"removeTimetable(x)\">{{Number(x.history_count)>0?'Archive':'Delete'}}</button></td></tr></tbody></table><div v-if=\"!timetable.length\" class=\"empty\">No timetable entries found</div></div>\n    </section>\n\n    <section v-if=\"view==='attendance'\" class=\"panel attendance-panel\">\n      <div class=\"panel-head\"><div><h2>Attendance</h2><p>Every scheduled session, automated result and teacher submission</p></div><div class=\"row-actions\"><button class=\"secondary\" @click=\"exportSessions\">Export sessions CSV</button><button class=\"secondary\" @click=\"loadAttendance\">Refresh attendance</button></div></div>\n      <div class=\"attendance-stats\">\n        <article><strong>{{attendanceSummary.sessions}}</strong><span>Sessions</span></article>\n        <article><strong>{{attendanceSummary.active}}</strong><span>Active</span></article>\n        <article><strong>{{attendanceSummary.review}}</strong><span>Awaiting review</span></article>\n        <article><strong>{{attendanceSummary.submitted}}</strong><span>Submitted</span></article>\n      </div>\n      <div class=\"filter-grid\"><input v-model=\"attendanceFilters.date\" type=\"date\"><input v-model=\"attendanceFilters.class\" placeholder=\"Filter class\"><input v-model=\"attendanceFilters.teacher\" placeholder=\"Filter teacher\"><input v-model=\"attendanceFilters.period\" type=\"number\" min=\"1\" placeholder=\"Period\"></div>\n      <div class=\"table-wrap\"><table><thead><tr><th>Session</th><th>Date</th><th>Time</th><th>Period</th><th>Class</th><th>Subject</th><th>Teacher</th><th>Room</th><th>Status</th><th>Students</th><th>Present</th><th>Absent</th><th>Review</th><th></th></tr></thead><tbody>\n        <tr v-for=\"s in filteredAttendanceSessions\" :key=\"s.session_id\" :class=\"{'selected-row':selectedSession&&selectedSession.session_id===s.session_id}\"><td>#{{s.session_id}}</td><td>{{s.date}}</td><td>{{s.start_time}}\u2013{{s.end_time}}</td><td>{{s.period}}</td><td>{{s.class}}</td><td>{{s.subject}}</td><td>{{s.teacher}}</td><td>{{s.room}}</td><td><span class=\"pill\" :class=\"sessionStatusClass(s.status)\">{{prettyStatus(s.status)}}</span></td><td>{{s.students}}</td><td>{{s.present}}</td><td>{{s.absent}}</td><td>{{s.review}}</td><td><button class=\"mini primary\" @click=\"openSession(s)\">View</button></td></tr>\n      </tbody></table><div v-if=\"!filteredAttendanceSessions.length\" class=\"empty\">No attendance sessions match these filters</div></div>\n\n      <div v-if=\"selectedSession\" class=\"session-details\">\n        <div class=\"panel-head\"><div><h3>Session #{{selectedSession.session_id}} details</h3><p>{{selectedSession.class}} \u00b7 {{selectedSession.subject}} \u00b7 Period {{selectedSession.period}} \u00b7 {{selectedSession.teacher}}</p></div><div class=\"row-actions\"><button class=\"secondary\" @click=\"exportSessionDetails\">Export details CSV</button><button class=\"secondary\" @click=\"selectedSession=null;attendance=[]\">Close</button></div></div>\n        <div class=\"table-wrap\"><table><thead><tr><th>Student</th><th>USN</th><th>Check-in</th><th>Wave 1</th><th>Wave 2</th><th>Wave 3</th><th>Automated</th><th>Teacher</th><th>Final</th><th>Override</th><th>Confirmed</th><th>Submitted</th></tr></thead><tbody><tr v-for=\"a in attendance\" :key=\"a.id\"><td>{{a.student}}</td><td>{{a.usn}}</td><td>{{a.checkin_method||'\u2014'}}</td><td><span class=\"pill\" :class=\"waveClass(a.wave_1)\">{{a.wave_1}}</span></td><td><span class=\"pill\" :class=\"waveClass(a.wave_2)\">{{a.wave_2}}</span></td><td><span class=\"pill\" :class=\"waveClass(a.wave_3)\">{{a.wave_3}}</span></td><td><span class=\"pill\" :class=\"statusClass(a.automated_status)\">{{prettyStatus(a.automated_status)}}</span></td><td><span class=\"pill\" :class=\"statusClass(a.teacher_status)\">{{prettyStatus(a.teacher_status)}}</span></td><td><span class=\"pill\" :class=\"statusClass(a.final_status)\">{{prettyStatus(a.final_status)}}</span></td><td>{{a.teacher_override}}</td><td>{{a.confirmed_at||'\u2014'}}</td><td>{{a.submitted_at||'\u2014'}}</td></tr></tbody></table><div v-if=\"!attendance.length\" class=\"empty\">This session has no student attendance rows yet</div></div>\n      </div>\n    </section>\n\n    <section v-if=\"view==='rooms'\" class=\"panel\">\n      <div class=\"panel-head\"><div><h2>Rooms</h2><p>Camera assignment and room availability</p></div><button class=\"primary\" @click=\"showRoomForm=!showRoomForm\">+ Add room</button></div>\n      <form v-if=\"showRoomForm\" class=\"form-grid\" @submit.prevent=\"addRoom\">\n        <input v-model.trim=\"roomForm.room_number\" placeholder=\"Room number\" required>\n        <input v-model.trim=\"roomForm.camera_id\" placeholder=\"Camera ID\">\n        <button class=\"primary\" type=\"submit\">Add room</button><button class=\"secondary\" type=\"button\" @click=\"showRoomForm=false\">Cancel</button>\n      </form>\n      <div class=\"table-wrap\"><table><thead><tr><th>ID</th><th>Room</th><th>Camera ID</th><th>Room Status</th><th>Camera Status</th><th>Usage</th><th>Created</th><th>Preview</th></tr></thead><tbody><tr v-for=\"r in rooms\" :key=\"r.id\"><td>{{r.id}}</td><td>{{r.room_number}}</td><td>{{r.camera_id||'\u2014'}}</td><td><span class=\"pill\" :class=\"r.room_status==='Enabled'?'ok':'off'\">{{r.room_status}}</span></td><td><span class=\"pill\" :class=\"cameraOnline(r)?'ok':'off'\">{{cameraOnline(r)?'Active':'Offline'}}</span></td><td><span class=\"pill\" :class=\"cameraInUse(r)?'active-pill':'neutral-pill'\">{{cameraInUse(r)?'In use':'Not in use'}}</span></td><td>{{r.created_at}}</td><td><button class=\"mini primary\" :disabled=\"!cameraOnline(r)||!cameraInUse(r)\" @click=\"previewCamera(r)\">{{cameraInUse(r)?'Preview camera':'Not in use'}}</button></td></tr></tbody></table><div v-if=\"!rooms.length\" class=\"empty\">No rooms found</div></div>\n      <div v-if=\"previewRoom\" class=\"camera-preview\"><div class=\"preview-head\"><div><h3>Room {{previewRoom.room_number}} camera</h3><small>{{previewRoom.camera_id||'No camera ID'}}</small></div><div class=\"row-actions\"><button class=\"mini secondary\" @click=\"refreshPreview\">Reconnect preview</button><button class=\"mini danger\" @click=\"closePreview\">Close</button></div></div><img :src=\"previewUrl\" @load=\"previewLoaded\" @error=\"previewFailed\"><p>{{previewMessage}}</p><small>Both camera feeds stay active. Preview is restricted to the room currently in use.</small></div>\n    </section>\n  </div>\n</template>\n\n<script>\nexport default {\n  components: {\n    DataGrid: {\n      props: ['rows'],\n      template: '<div class=\"table-wrap\"><table v-if=\"rows && rows.length\"><thead><tr><th v-for=\"h in headers\" :key=\"h\">{{pretty(h)}}</th></tr></thead><tbody><tr v-for=\"(row,i) in rows\" :key=\"row.id || i\"><td v-for=\"h in headers\" :key=\"h\">{{display(row[h])}}</td></tr></tbody></table><div v-else class=\"empty\">No records found</div></div>',\n      computed: { headers(){ return this.rows && this.rows.length ? Object.keys(this.rows[0]).filter(k => !['password','password_hash','face_embedding','photo_path'].includes(k)) : [] } },\n      methods: { pretty(v){return v.replaceAll('_',' ').replace(/\\\\b\\\\w/g,c=>c.toUpperCase())}, display(v){if(v===null||v===undefined)return '\u2014'; if(typeof v==='object')return JSON.stringify(v); return v} }\n    }\n  },\n  data(){return {\n    view:'home', adminUser:{}, notice:'', noticeType:'okmsg',\n    students:[], teachers:[], timetable:[], attendance:[], attendanceSessions:[], selectedSession:null, rooms:[], classes:[], subjects:[],\n    search:{students:'',teachers:''}, attendanceFilters:{date:'',class:'',teacher:'',period:''}, showStudentForm:false, showTimetableForm:false, showRoomForm:false,\n    enrollingStudent:false, enrollingStudentId:null, studentPhoto:null, studentPhotoName:'', faceService:{online:false,cameras:{}}, previewRoom:null, previewUrl:'', previewMessage:'',\n    studentForm:{name:'',usn:'',class_id:'',rfid_uid:''}, roomForm:{room_number:'',camera_id:''},\n    timetableForm:{id:null,class_id:'',day_of_week:'',period_number:'',start_time:'',end_time:'',subject_id:'',teacher_id:'',room_id:''},\n    days:['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],\n    nav:[{key:'home',label:'ContinIo',icon:'mdi-view-dashboard'},{key:'students',label:'Students',icon:'mdi-account-school'},{key:'teachers',label:'Teachers',icon:'mdi-human-male-board'},{key:'timetable',label:'Timetable',icon:'mdi-calendar-clock'},{key:'attendance',label:'Attendance',icon:'mdi-clipboard-check'},{key:'rooms',label:'Rooms',icon:'mdi-door'}]\n  }},\n  computed:{\n    cards(){return [{key:'students',label:'Students',value:this.students.length,icon:'mdi-account-school'},{key:'teachers',label:'Teachers',value:this.teachers.length,icon:'mdi-human-male-board'},{key:'timetable',label:'Timetable entries',value:this.timetable.length,icon:'mdi-calendar-clock'},{key:'attendance',label:'Attendance sessions',value:this.attendanceSessions.length,icon:'mdi-clipboard-check'},{key:'rooms',label:'Rooms',value:this.rooms.length,icon:'mdi-door'}]},\n    filteredStudents(){const q=this.search.students.toLowerCase();return this.students.filter(x=>JSON.stringify(x).toLowerCase().includes(q))},\n    filteredTeachers(){const q=this.search.teachers.toLowerCase();return this.teachers.filter(x=>JSON.stringify(x).toLowerCase().includes(q))},\n    filteredAttendanceSessions(){const f=this.attendanceFilters;return this.attendanceSessions.filter(a=>(!f.date||a.date===f.date)&&(!f.class||String(a.class||'').toLowerCase().includes(f.class.toLowerCase()))&&(!f.teacher||String(a.teacher||'').toLowerCase().includes(f.teacher.toLowerCase()))&&(!f.period||Number(a.period)===Number(f.period)))},\n    attendanceSummary(){return {sessions:this.attendanceSessions.length,active:this.attendanceSessions.filter(x=>x.status==='active').length,review:this.attendanceSessions.filter(x=>x.status==='teacher_review').length,submitted:this.attendanceSessions.filter(x=>x.status==='submitted').length}}\n  },\n  watch:{msg:{deep:true,handler(m){if(!m||!m.payload)return; const p=m.payload; if(p.section&&Array.isArray(p.rows)){if(p.section==='attendance_sessions')this.attendanceSessions=p.rows;else this[p.section]=p.rows} if(p.notice){this.notice=p.notice;this.noticeType=p.ok===false?'errmsg':'okmsg';setTimeout(()=>this.notice='',4000)}}}},\n  mounted(){this.authorize();this.checkFaceService();this.refreshTimer=setInterval(()=>this.loadAll(),10000);this.faceTimer=setInterval(()=>this.checkFaceService(false),15000)},beforeUnmount(){clearInterval(this.refreshTimer);clearInterval(this.faceTimer)},\n  methods:{\n    async authorize(){try{const r=await fetch('/continio-api/auth/me',{credentials:'same-origin',headers:{Authorization:'Bearer '+(sessionStorage.getItem('continio_session_token')||'')}});const j=await r.json();if(!r.ok||!j.user||j.user.role!=='admin'){sessionStorage.removeItem('continio_session_token');location.href='/dashboard/home';return}this.adminUser=j.user;this.loadAll()}catch(e){sessionStorage.removeItem('continio_session_token');location.href='/dashboard/home'}},\n    async logout(){await fetch('/continio-api/auth/logout',{method:'POST',credentials:'same-origin',headers:{Authorization:'Bearer '+(sessionStorage.getItem('continio_session_token')||'')}});sessionStorage.removeItem('continio_session_token');location.href='/dashboard/home'},\n    prettyStatus(v){return v?String(v).replaceAll('_',' ').replace(/\\b\\w/g,c=>c.toUpperCase()):'\u2014'},statusClass(v){return v==='present'?'ok':v==='absent'?'off':'review-pill'},waveClass(v){const x=String(v||'').toLowerCase();return x.startsWith('present')?'ok':x.startsWith('absent')?'off':'review-pill'},sessionStatusClass(v){return v==='active'?'active-pill':v==='submitted'||v==='confirmed'?'ok':v==='teacher_review'?'review-pill':'neutral-pill'},\n    sendAction(action,data={}){this.send({payload:{action,...data}})}, loadAll(){this.sendAction('load_all')},\n    open(v){this.view=v;if(v==='attendance')this.loadAttendance();else this.sendAction('load_'+v);if(['timetable','rooms'].includes(v)){this.sendAction('load_classes');this.sendAction('load_subjects');this.sendAction('load_teachers')}},\n    loadAttendance(){this.selectedSession=null;this.attendance=[];this.sendAction('load_attendance_sessions')},\n    openSession(s){this.selectedSession=s;this.attendance=[];this.sendAction('load_attendance_details',{session_id:s.session_id})},\n    async checkFaceService(showNotice=true){try{const r=await fetch('http://127.0.0.1:5055/health',{cache:'no-store'});const j=await r.json();this.faceService={online:!!(r.ok&&j.ok),cameras:j.cameras||{}};if(showNotice&&this.faceService.online){this.notice='Face service connected';this.noticeType='okmsg';setTimeout(()=>this.notice='',2500)}}catch(e){this.faceService={online:false,cameras:{}};if(showNotice){this.notice='Face service is offline. Start the ContinIo launcher and retry.';this.noticeType='errmsg';setTimeout(()=>this.notice='',6000)}}},\n    assignRFID(s){const raw=prompt((s.rfid_uid?'Change':'Assign')+' RFID UID for '+s.name+(s.rfid_uid?'\\nCurrent: '+s.rfid_uid:''),s.rfid_uid||'');if(raw===null)return;const uid=String(raw).replace(/[^0-9a-f]/gi,'').toUpperCase();if(!/^[0-9A-F]{8,20}$/.test(uid)){this.notice='RFID UID must contain 8\u201320 hexadecimal characters';this.noticeType='errmsg';return}this.sendAction('update_student_rfid',{id:s.id,rfid_uid:uid})},\n    csv(rows,name){if(!rows.length){this.notice='There is no attendance data to export';this.noticeType='errmsg';return}const keys=Object.keys(rows[0]);const esc=v=>'\"'+String(v??'').replaceAll('\"','\"\"')+'\"';const text=[keys.map(esc).join(','),...rows.map(r=>keys.map(k=>esc(r[k])).join(','))].join('\\n');const blob=new Blob([text],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)},\n    exportSessions(){this.csv(this.filteredAttendanceSessions,'ContinIo_attendance_sessions.csv')},\n    exportSessionDetails(){this.csv(this.attendance,'ContinIo_session_'+this.selectedSession.session_id+'_attendance.csv')},\n    chooseExistingStudentPhoto(s){if(this.enrollingStudentId)return;const input=document.createElement('input');input.type='file';input.accept='image/jpeg,image/png,image/webp';input.onchange=()=>{const file=input.files&&input.files[0];if(file)this.enrollExistingStudent(s,file)};input.click()},\n    async enrollExistingStudent(s,file){if(!this.faceService.online){this.notice='Face service is offline. Start the ContinIo launcher and retry.';this.noticeType='errmsg';return}if(file.size>5*1024*1024){this.notice='Photo must be smaller than 5 MB';this.noticeType='errmsg';return}this.enrollingStudentId=s.id;try{const image=await this.fileAsDataUrl(file);const r=await fetch('http://127.0.0.1:5055/embed',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image})});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error||'Face enrollment failed');this.sendAction('update_student_embedding',{id:s.id,face_embedding:j.embedding})}catch(e){this.faceService={online:false,cameras:{}};this.notice='Face service is offline or unreachable. Start the ContinIo launcher and retry.';this.noticeType='errmsg';setTimeout(()=>this.notice='',6000)}finally{this.enrollingStudentId=null}},\n    setStudentStatus(s){if(!confirm((s.status==='Active'?'Deactivate ':'Reactivate ')+s.name+'?'))return;this.sendAction('set_student_status',{id:s.id,active:s.status==='Active'?0:1})},\n    setTeacherStatus(t){const activating=t.status!=='Active';const warning=activating?'Reactivate '+t.name+'?':'Deactivate '+t.name+'? They will no longer be able to log in.';if(!confirm(warning))return;this.sendAction('set_teacher_status',{id:t.id,active:activating?1:0})},\n    selectStudentPhoto(e){const f=e.target.files&&e.target.files[0];this.studentPhoto=f||null;this.studentPhotoName=f?f.name:''},\n    resetStudentForm(){this.studentForm={name:'',usn:'',class_id:'',rfid_uid:''};this.studentPhoto=null;this.studentPhotoName='';if(this.$refs.studentPhoto)this.$refs.studentPhoto.value=''},\n    fileAsDataUrl(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(new Error('Could not read the selected photo'));r.readAsDataURL(file)})},\n    async addStudent(){if(this.enrollingStudent)return;if(!this.faceService.online){this.notice='Face service is offline. Start the ContinIo launcher and retry.';this.noticeType='errmsg';return}if(!this.studentPhoto){this.notice='Select one clear student photo';this.noticeType='errmsg';return}if(this.studentPhoto.size>5*1024*1024){this.notice='Photo must be smaller than 5 MB';this.noticeType='errmsg';return}this.enrollingStudent=true;try{const image=await this.fileAsDataUrl(this.studentPhoto);const r=await fetch('http://127.0.0.1:5055/embed',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image})});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j.error||'Face enrollment failed');this.sendAction('add_student',{...this.studentForm,face_embedding:j.embedding});this.showStudentForm=false;this.resetStudentForm()}catch(e){this.faceService={online:false,cameras:{}};this.notice='Face service is offline or unreachable. Start the ContinIo launcher and retry.';this.noticeType='errmsg';setTimeout(()=>this.notice='',6000)}finally{this.enrollingStudent=false}},\n    cameraInfo(r){return this.faceService.cameras&&this.faceService.cameras[String(r.room_number)]||{}},\n    cameraOnline(r){return this.cameraInfo(r).online===true},\n    cameraInUse(r){return this.cameraInfo(r).in_use===true},\n    previewCamera(r){if(!this.faceService.online||!this.cameraOnline(r)){this.notice='This camera is offline. Check its source and launcher Terminal.';this.noticeType='errmsg';return}if(!this.cameraInUse(r)){this.notice='Preview is available only while this room is in use.';this.noticeType='errmsg';return}this.previewRoom=r;this.refreshPreview()},\n    refreshPreview(){if(!this.previewRoom)return;this.previewMessage='Opening live camera\u2026';this.previewUrl='http://127.0.0.1:5055/camera/'+encodeURIComponent(this.previewRoom.room_number)+'/preview?t='+Date.now()},\n    previewLoaded(){this.previewMessage='Live camera preview connected';this.checkFaceService(false)},\n    previewFailed(){this.previewMessage='Camera is offline, not in use, or its source is incorrect';this.checkFaceService(false)},\n    closePreview(){this.previewRoom=null;this.previewUrl='';this.previewMessage=''},\n    addRoom(){this.sendAction('add_room',{...this.roomForm});this.showRoomForm=false;this.roomForm={room_number:'',camera_id:''}},\n    newTimetable(){this.timetableForm={id:null,class_id:'',day_of_week:'',period_number:'',start_time:'',end_time:'',subject_id:'',teacher_id:'',room_id:''};this.showTimetableForm=true},\n    cancelTimetable(){this.showTimetableForm=false;this.timetableForm={id:null,class_id:'',day_of_week:'',period_number:'',start_time:'',end_time:'',subject_id:'',teacher_id:'',room_id:''}},\n    editTimetable(x){this.timetableForm={id:x.id,class_id:Number(x.class_id),day_of_week:x.day,period_number:Number(x.period),start_time:x.start_time,end_time:x.end_time,subject_id:Number(x.subject_id),teacher_id:Number(x.teacher_id),room_id:Number(x.room_id)};this.showTimetableForm=true;window.scrollTo({top:0,behavior:'smooth'})},\n    saveTimetable(){this.sendAction(this.timetableForm.id?'update_timetable':'add_timetable',{...this.timetableForm});this.cancelTimetable()},\n    removeTimetable(x){const hasHistory=Number(x.history_count)>0;const verb=hasHistory?'Archive':'Permanently delete';if(!confirm(verb+' this timetable entry?'))return;this.sendAction(hasHistory?'archive_timetable':'delete_timetable',{id:x.id})},\n    restoreTimetable(x){if(confirm('Reactivate this timetable entry?'))this.sendAction('restore_timetable',{id:x.id})}\n  }\n}\n</script>\n\n<style>\n.dashboard-app{max-width:1400px;margin:0 auto;padding:8px;font-family:Inter,Arial,sans-serif;color:#27231f}.hero{background:linear-gradient(135deg,#f97316,#ea580c);color:white;border-radius:24px;padding:28px 32px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 16px 36px #f9731638}.hero h1{font-size:40px;line-height:1;margin:5px 0}.hero p{margin:0;opacity:.9}.admin-actions{display:flex;align-items:center;gap:10px}.admin-actions span{font-weight:800}.eyebrow{font-size:12px;letter-spacing:2px;font-weight:800}.tabs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:20px 0}.tabs button{border:0;background:white;padding:11px 16px;border-radius:13px;display:flex;align-items:center;gap:7px;cursor:pointer;box-shadow:0 3px 12px #2b1c1015;font-weight:700}.tabs button.active{background:#f97316;color:white}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.stats article{background:white;border:1px solid #fed7aa;border-radius:20px;padding:22px;display:grid;gap:7px;cursor:pointer;box-shadow:0 8px 24px #7c2d1210}.stats article .v-icon{color:#f97316}.stats strong{font-size:32px}.stats span{color:#6b625b}.panel{background:white;border:1px solid #fed7aa;border-radius:22px;padding:24px;margin-top:16px;box-shadow:0 10px 30px #7c2d1210}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:18px}.panel h2{margin:0}.panel p{margin:5px 0;color:#746c65}.primary,.secondary,.mini{border:0;border-radius:10px;padding:10px 14px;font-weight:750;cursor:pointer}.primary{background:#f97316;color:white}.secondary{background:#fff7ed;color:#9a3412}.danger{background:#dc2626;color:white}.success{background:#16a34a;color:white}.mini{padding:7px 10px}.row-actions{display:flex;gap:7px}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;background:#fff7ed;padding:16px;border-radius:15px;margin-bottom:16px}.form-grid input,.form-grid select,.search{border:1px solid #fdba74;border-radius:11px;padding:11px;background:white}.search{width:min(420px,100%);margin-bottom:14px}.photo-field{border:1px dashed #fb923c;border-radius:12px;padding:11px;background:white;display:grid;gap:6px}.photo-field span{font-weight:800;color:#9a3412}.photo-field input{border:0;padding:0}.photo-field small{color:#746c65}.privacy-note{border-radius:12px;padding:11px;background:#ecfdf5;color:#166534;display:grid;gap:3px}.privacy-note span{font-size:12px}.primary:disabled{opacity:.6;cursor:wait}.rfid{background:#0ea5e9;color:white}.service-card{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 16px;border-radius:13px;margin-bottom:16px}.service-card div{display:grid;gap:3px}.service-card span{font-size:12px}.service-online{background:#ecfdf5;color:#166534;border:1px solid #86efac}.service-offline{background:#fef2f2;color:#991b1b;border:1px solid #fca5a5}.camera-preview{margin-top:18px;background:#0f172a;color:#e2e8f0;border-radius:18px;padding:18px}.preview-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.preview-head h3{margin:0}.camera-preview img{display:block;width:100%;max-height:560px;object-fit:contain;background:#020617;border-radius:13px}.camera-preview p{font-weight:750;margin-bottom:4px}.camera-preview small{color:#94a3b8}.table-wrap{overflow:auto;border:1px solid #ffedd5;border-radius:15px}table{width:100%;border-collapse:collapse;min-width:760px}th,td{text-align:left;padding:12px 14px;border-bottom:1px solid #ffedd5;white-space:nowrap}th{background:#fff7ed;color:#9a3412;font-size:12px;text-transform:uppercase;letter-spacing:.5px}tbody tr:hover{background:#fffaf5}.pill{padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800}.pill.ok{background:#dcfce7;color:#166534}.pill.off{background:#fee2e2;color:#991b1b}.pill.review-pill{background:#fef3c7;color:#92400e}.filter-grid{display:grid;grid-template-columns:repeat(4,minmax(130px,1fr));gap:10px;margin-bottom:15px}.filter-grid input{border:1px solid #fdba74;border-radius:11px;padding:11px;background:white}.attendance-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}.attendance-stats article{background:#fff7ed;border:1px solid #fed7aa;border-radius:15px;padding:16px;display:grid;gap:4px}.attendance-stats strong{font-size:27px;color:#c2410c}.attendance-stats span{color:#746c65}.session-details{margin-top:22px;padding-top:20px;border-top:2px solid #ffedd5}.session-details h3{margin:0}.selected-row{background:#fff7ed!important}.pill.active-pill{background:#dbeafe;color:#1d4ed8}.pill.neutral-pill{background:#f3f4f6;color:#4b5563}.empty{padding:34px;text-align:center;color:#8a817a}.notice{position:fixed;top:78px;right:24px;z-index:30;padding:12px 18px;border-radius:12px;color:white;box-shadow:0 8px 25px #0002}.okmsg{background:#16a34a}.errmsg{background:#dc2626}.status{margin-top:18px;color:#166534}.status i{display:inline-block;width:9px;height:9px;border-radius:50%;background:#22c55e;margin-right:7px}@media(max-width:850px){.stats,.attendance-stats{grid-template-columns:repeat(2,1fr)}.hero{border-radius:16px}.form-grid{grid-template-columns:1fr}}@media(max-width:520px){.stats{grid-template-columns:1fr}.hero{padding:22px}.hero h1{font-size:32px}.tabs button span{display:none}.panel{padding:14px}}\n</style>",
+    "storeOutMessages": true,
+    "passthru": false,
+    "resendOnRefresh": true,
+    "templateScope": "local",
+    "className": "",
+    "x": 310,
+    "y": 180,
+    "wires": [
+      [
+        "1456f59e3a0e2bfd"
+      ]
+    ]
+  },
+  {
+    "id": "c50d2e8a81801bab",
+    "type": "ui-event",
+    "z": "52ae7c11408663f5",
+    "ui": "f16557447a684662",
+    "name": "ContinIo Page Events",
+    "x": 150,
+    "y": 100,
+    "wires": [
+      [
+        "1456f59e3a0e2bfd"
+      ]
+    ]
+  },
+  {
+    "id": "1456f59e3a0e2bfd",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "ContinIo Query Router",
+    "func": "const p = msg.payload || {};\nconst action = p.action;\n\nconst queries = {\n  students: \"SELECT s.id, s.name, s.usn, c.name AS class, s.rfid_uid, IF(s.face_embedding IS NOT NULL AND JSON_LENGTH(s.face_embedding)>0,'Enrolled','Not enrolled') AS face_status, IF(s.active=1,'Active','Inactive') AS status, DATE_FORMAT(s.created_at,'%d-%m-%Y %H:%i') AS registered_at FROM students s JOIN classes c ON c.id=s.class_id ORDER BY s.name\",\n  teachers: \"SELECT id,name,teacher_id,email,mobile,IF(active=1,'Active','Inactive') AS status,DATE_FORMAT(created_at,'%d-%m-%Y %H:%i') AS registered_at FROM teachers ORDER BY id DESC\",\n  timetable: \"SELECT tt.id,tt.class_id,tt.subject_id,tt.teacher_id,tt.room_id,c.name AS class, tt.day_of_week AS day, tt.period_number AS period,TIME_FORMAT(tt.start_time,'%H:%i') AS start_time,TIME_FORMAT(tt.end_time,'%H:%i') AS end_time,s.name AS subject, t.name AS teacher, COALESCE(r.room_number,'\u2014') AS room,IF(tt.active=1,'Enabled','Archived') AS status,(SELECT COUNT(*) FROM attendance_sessions hx WHERE hx.timetable_id=tt.id) AS history_count FROM timetable tt LEFT JOIN classes c ON c.id=tt.class_id LEFT JOIN subjects s ON s.id=tt.subject_id LEFT JOIN teachers t ON t.id=tt.teacher_id LEFT JOIN rooms r ON r.id=tt.room_id ORDER BY FIELD(tt.day_of_week,'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'),tt.period_number\",\n  attendance: \"SELECT a.id,DATE_FORMAT(ses.session_date,'%Y-%m-%d') AS date,tt.period_number AS period,c.name AS class,sub.name AS subject,t.name AS teacher,r.room_number AS room,st.name AS student,st.usn,a.automated_status,a.teacher_status,a.final_status,IF(a.teacher_override=1,'Yes','No') AS teacher_override,DATE_FORMAT(a.confirmed_at,'%d-%m-%Y %H:%i') AS confirmed_at,DATE_FORMAT(a.submitted_at,'%d-%m-%Y %H:%i') AS submitted_at FROM attendance a LEFT JOIN attendance_sessions ses ON ses.id=a.session_id LEFT JOIN timetable tt ON tt.id=ses.timetable_id LEFT JOIN classes c ON c.id=tt.class_id LEFT JOIN subjects sub ON sub.id=tt.subject_id LEFT JOIN teachers t ON t.id=tt.teacher_id LEFT JOIN rooms r ON r.id=tt.room_id LEFT JOIN students st ON st.id=a.student_id ORDER BY ses.session_date DESC,tt.period_number,a.id LIMIT 500\",\n  rooms: \"SELECT r.id,r.room_number,r.camera_id,IF(r.active=1,'Enabled','Disabled') AS room_status,IF(EXISTS(SELECT 1 FROM attendance_sessions ses JOIN timetable tt ON tt.id=ses.timetable_id WHERE tt.room_id=r.id AND ses.session_date=CURDATE() AND ses.status='active' AND NOW() BETWEEN ses.start_time AND ses.end_time),'Active','Inactive') AS camera_status,DATE_FORMAT(r.created_at,'%d-%m-%Y %H:%i') AS created_at FROM rooms r ORDER BY r.room_number\",\n  classes: \"SELECT id,name FROM classes ORDER BY name\",\n  subjects: \"SELECT id,name,code FROM subjects ORDER BY name\",\n  attendance_sessions: \"SELECT ses.id AS session_id,DATE_FORMAT(ses.session_date,'%Y-%m-%d') AS date,TIME_FORMAT(ses.start_time,'%H:%i') AS start_time,TIME_FORMAT(ses.end_time,'%H:%i') AS end_time,ses.status,tt.period_number AS period,c.name AS class,sub.name AS subject,t.name AS teacher,r.room_number AS room,COUNT(a.id) AS students,SUM(CASE WHEN COALESCE(a.final_status,a.teacher_status,a.automated_status)='present' THEN 1 ELSE 0 END) AS present,SUM(CASE WHEN COALESCE(a.final_status,a.teacher_status,a.automated_status)='absent' THEN 1 ELSE 0 END) AS absent,SUM(CASE WHEN COALESCE(a.final_status,a.teacher_status,a.automated_status)='review' THEN 1 ELSE 0 END) AS review FROM attendance_sessions ses JOIN timetable tt ON tt.id=ses.timetable_id LEFT JOIN classes c ON c.id=tt.class_id LEFT JOIN subjects sub ON sub.id=tt.subject_id LEFT JOIN teachers t ON t.id=tt.teacher_id LEFT JOIN rooms r ON r.id=tt.room_id LEFT JOIN attendance a ON a.session_id=ses.id GROUP BY ses.id,ses.session_date,ses.start_time,ses.end_time,ses.status,tt.period_number,c.name,sub.name,t.name,r.room_number ORDER BY ses.session_date DESC,ses.start_time DESC LIMIT 300\"\n};\n\nfunction q(section, topic, values=[]) { return {_client:msg._client, section, topic, payload:values}; }\nif (action === 'load_all' || action === 'load_home') return [[q('students',queries.students),q('teachers',queries.teachers),q('timetable',queries.timetable),q('attendance_sessions',queries.attendance_sessions),q('rooms',queries.rooms),q('classes',queries.classes),q('subjects',queries.subjects)]];\nif(action==='load_attendance_details'){const id=Number(p.session_id);if(!Number.isInteger(id)||id<1){node.error('Invalid attendance session',msg);return null;}return q('attendance',\"SELECT a.id,st.name AS student,st.usn,COALESCE((SELECT ci.checkin_method FROM student_checkins ci WHERE ci.session_id=a.session_id AND ci.student_id=a.student_id ORDER BY ci.checked_in_at DESC LIMIT 1),'\u2014') AS checkin_method,COALESCE((SELECT CONCAT(UPPER(LEFT(wr.result,1)),LOWER(SUBSTRING(wr.result,2)),IF(wr.confidence IS NULL,'',CONCAT(' \u00b7 ',FORMAT(wr.confidence,2)))) FROM wave_results wr WHERE wr.session_id=a.session_id AND wr.student_id=a.student_id AND wr.wave_number=1 LIMIT 1),'Pending') AS wave_1,COALESCE((SELECT CONCAT(UPPER(LEFT(wr.result,1)),LOWER(SUBSTRING(wr.result,2)),IF(wr.confidence IS NULL,'',CONCAT(' \u00b7 ',FORMAT(wr.confidence,2)))) FROM wave_results wr WHERE wr.session_id=a.session_id AND wr.student_id=a.student_id AND wr.wave_number=2 LIMIT 1),'Pending') AS wave_2,COALESCE((SELECT CONCAT(UPPER(LEFT(wr.result,1)),LOWER(SUBSTRING(wr.result,2)),IF(wr.confidence IS NULL,'',CONCAT(' \u00b7 ',FORMAT(wr.confidence,2)))) FROM wave_results wr WHERE wr.session_id=a.session_id AND wr.student_id=a.student_id AND wr.wave_number=3 LIMIT 1),'Pending') AS wave_3,a.automated_status,a.teacher_status,a.final_status,IF(a.teacher_override=1,'Yes','No') AS teacher_override,DATE_FORMAT(a.confirmed_at,'%d-%m-%Y %H:%i') AS confirmed_at,DATE_FORMAT(a.submitted_at,'%d-%m-%Y %H:%i') AS submitted_at FROM attendance a JOIN students st ON st.id=a.student_id WHERE a.session_id=? ORDER BY st.name\",[id]);}\nif (action && action.startsWith('load_')) { const section=action.slice(5); if(queries[section]) return q(section,queries[section]); return null; }\n\nif (action === 'set_teacher_status') {\n  const id=Number(p.id), active=Number(p.active);\n  if(!Number.isInteger(id)||id<1||![0,1].includes(active)){node.error('Invalid teacher status request',msg);return null;}\n  return q('_mutation_teachers', 'UPDATE teachers t LEFT JOIN continio_accounts a ON a.teacher_id=t.id SET t.active=?, a.active=? WHERE t.id=?', [active,active,id]);\n}\nif (action === 'update_student_embedding') {\n  const id=Number(p.id), embedding=p.face_embedding;\n  if(!Number.isInteger(id)||id<1){node.error('Invalid student ID',msg);return null;}\n  if(!Array.isArray(embedding)||embedding.length!==128||embedding.some(v=>typeof v!=='number'||!Number.isFinite(v))){node.error('A valid 128-value face embedding is required',msg);return null;}\n  return q('_mutation', 'UPDATE students SET face_embedding=?,photo_path=NULL WHERE id=?', [JSON.stringify(embedding),id]);\n}\nif (action === 'update_student_rfid') {\n  const id=Number(p.id), uid=String(p.rfid_uid||'').replace(/[^0-9a-f]/gi,'').toUpperCase();\n  if(!Number.isInteger(id)||id<1||!/^[0-9A-F]{8,20}$/.test(uid)){node.error('Invalid student or RFID UID',msg);return null;}\n  return q('_mutation', 'UPDATE students SET rfid_uid=? WHERE id=?', [uid,id]);\n}\nif (action === 'set_student_status') {\n  const id=Number(p.id), active=Number(p.active);\n  if(!Number.isInteger(id)||id<1||![0,1].includes(active)){node.error('Invalid student status request',msg);return null;}\n  return q('_mutation', 'UPDATE students SET active=? WHERE id=?', [active,id]);\n}\nif (action === 'add_student') {\n  const classId=Number(p.class_id), embedding=p.face_embedding;\n  if(!p.name||!p.usn||!Number.isInteger(classId)){node.error('Complete the student name, USN and class',msg);return null;}\n  if(!Array.isArray(embedding)||embedding.length!==128||embedding.some(v=>typeof v!=='number'||!Number.isFinite(v))){node.error('A valid 128-value face embedding is required',msg);return null;}\n  const uid=p.rfid_uid?String(p.rfid_uid).trim():null;\n  return q('_mutation', 'INSERT INTO students (name,usn,class_id,rfid_uid,face_embedding,photo_path) VALUES (?,?,?,?,?,NULL)', [String(p.name).trim(),String(p.usn).trim().toUpperCase(),classId,uid,JSON.stringify(embedding)]);\n}\nif (action === 'add_room') {\n  if(!p.room_number){node.error('Room number required',msg);return null;}\n  return q('_mutation_rooms', 'INSERT INTO rooms (room_number,camera_id) VALUES (?,?)', [String(p.room_number).trim(),p.camera_id?String(p.camera_id).trim():null]);\n}\nif (['add_timetable','update_timetable'].includes(action)) {\n  const vals=[p.class_id,p.day_of_week,p.period_number,p.start_time,p.end_time,p.subject_id,p.teacher_id,p.room_id];\n  if(vals.some(v=>v===undefined||v==='')){node.error('Complete every timetable field',msg);return null;}\n  const classId=Number(p.class_id),day=String(p.day_of_week),period=Number(p.period_number),start=String(p.start_time),end=String(p.end_time),subject=Number(p.subject_id),teacher=Number(p.teacher_id),room=Number(p.room_id);\n  if(start>=end){node.error('End time must be after start time',msg);return null;}\n  const values=[classId,day,period,start,end,subject,teacher,room];\n  if(action==='update_timetable'){const id=Number(p.id);if(!Number.isInteger(id)||id<1){node.error('Invalid timetable ID',msg);return null;}const sql='UPDATE timetable target LEFT JOIN timetable conflict ON conflict.active=1 AND conflict.id<>target.id AND conflict.day_of_week=? AND conflict.start_time<? AND conflict.end_time>? AND (conflict.teacher_id=? OR conflict.room_id=? OR conflict.class_id=?) SET target.class_id=?,target.day_of_week=?,target.period_number=?,target.start_time=?,target.end_time=?,target.subject_id=?,target.teacher_id=?,target.room_id=? WHERE target.id=? AND conflict.id IS NULL';return q('_mutation_timetable',sql,[day,end,start,teacher,room,classId,...values,id]);}\n  const sql='INSERT INTO timetable (class_id,day_of_week,period_number,start_time,end_time,subject_id,teacher_id,room_id,active) SELECT ?,?,?,?,?,?,?,?,1 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM timetable conflict WHERE conflict.active=1 AND conflict.day_of_week=? AND conflict.start_time<? AND conflict.end_time>? AND (conflict.teacher_id=? OR conflict.room_id=? OR conflict.class_id=?))';return q('_mutation_timetable',sql,[...values,day,end,start,teacher,room,classId]);\n}\nif (['delete_timetable','archive_timetable','restore_timetable'].includes(action)) {\n  const id=Number(p.id);if(!Number.isInteger(id)||id<1){node.error('Invalid timetable ID',msg);return null;}\n  if(action==='delete_timetable')return q('_mutation_timetable','DELETE FROM timetable WHERE id=? AND NOT EXISTS (SELECT 1 FROM attendance_sessions ses WHERE ses.timetable_id=timetable.id)',[id]);\n  return q('_mutation_timetable','UPDATE timetable SET active=? WHERE id=?',[action==='restore_timetable'?1:0,id]);\n}\nreturn null;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 570,
+    "y": 140,
+    "wires": [
+      [
+        "863d61e897ffed71"
+      ]
+    ]
+  },
+  {
+    "id": "863d61e897ffed71",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "ContinIo MySQL",
+    "x": 820,
+    "y": 140,
+    "wires": [
+      [
+        "e79c2ad65f1c32ee"
+      ]
+    ]
+  },
+  {
+    "id": "e79c2ad65f1c32ee",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Format ContinIo Result",
+    "func": "if(msg.section==='_mutation_timetable'&&msg.payload&&Number(msg.payload.affectedRows)===0){return [{_client:msg._client,payload:{notice:'Timetable conflict: the class, teacher, or room is already booked during that time',ok:false}},{_client:msg._client,payload:{action:'load_timetable'}}];}\nif (msg.section === '_mutation' || msg.section === '_mutation_rooms' || msg.section === '_mutation_timetable' || msg.section === '_mutation_teachers') {\n  const reload = msg.section === '_mutation' ? 'load_students' : msg.section === '_mutation_rooms' ? 'load_rooms' : msg.section === '_mutation_teachers' ? 'load_teachers' : 'load_timetable';\n  const notice = msg.section === '_mutation' ? 'Student status/record updated' : msg.section === '_mutation_rooms' ? 'Room added' : msg.section === '_mutation_teachers' ? 'Teacher status updated' : 'Timetable updated';\n  return [{_client:msg._client,payload:{notice,ok:true}}, {_client:msg._client,payload:{action:reload}}];\n}\nreturn [{_client:msg._client,payload:{section:msg.section,rows:Array.isArray(msg.payload)?msg.payload:[]}}, null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1060,
+    "y": 140,
+    "wires": [
+      [
+        "8173fa5e22f4b390"
+      ],
+      [
+        "1456f59e3a0e2bfd"
+      ]
+    ]
+  },
+  {
+    "id": "0604af9986a07648",
+    "type": "catch",
+    "z": "52ae7c11408663f5",
+    "name": "Catch ContinIo Errors",
+    "scope": [
+      "1456f59e3a0e2bfd",
+      "863d61e897ffed71",
+      "e79c2ad65f1c32ee"
+    ],
+    "uncaught": false,
+    "x": 580,
+    "y": 240,
+    "wires": [
+      [
+        "fee2223eb69f6cd6"
+      ]
+    ]
+  },
+  {
+    "id": "fee2223eb69f6cd6",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Show ContinIo Error",
+    "func": "const text = (msg.error && msg.error.message) ? msg.error.message : 'Database operation failed';\nmsg.payload = {notice:text,ok:false};\nreturn msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 830,
+    "y": 240,
+    "wires": [
+      [
+        "8173fa5e22f4b390"
+      ]
+    ]
+  },
+  {
+    "id": "73b2fe2b80e67144",
+    "type": "MySQLdatabase",
+    "name": "ContinIo MySQL \u2014 SET PASSWORD",
+    "host": "127.0.0.1",
+    "port": "3306",
+    "db": "continio",
+    "tz": "",
+    "charset": "UTF8MB4"
+  },
+  {
+    "id": "6445e06542c122ca",
+    "type": "http in",
+    "z": "52ae7c11408663f5",
+    "name": "Record wave result",
+    "url": "/continio-api/wave-result",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 160,
+    "y": 380,
+    "wires": [
+      [
+        "e0fdbd921b869c65"
+      ]
+    ]
+  },
+  {
+    "id": "e0fdbd921b869c65",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Validate wave result",
+    "func": "const p=msg.payload||{};\nconst sid=Number(p.session_id), student=Number(p.student_id), wave=Number(p.wave_number), confidence=p.confidence==null?null:Number(p.confidence);\nif(!Number.isInteger(sid)||!Number.isInteger(student)||![1,2,3].includes(wave)){msg.statusCode=400;msg.payload={ok:false,error:'session_id, student_id and wave_number (1-3) are required'};return [null,msg];}\nconst result=['present','absent','unclear'].includes(p.result)?p.result:'present';\nmsg.topic='INSERT INTO wave_results (session_id,student_id,wave_number,result,confidence) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE result=VALUES(result),confidence=VALUES(confidence),detected_at=CURRENT_TIMESTAMP';\nmsg.payload=[sid,student,wave,result,confidence];\nreturn [msg,null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 410,
+    "y": 380,
+    "wires": [
+      [
+        "a94f5fb0094afef3"
+      ],
+      [
+        "f586e0275b9cd669"
+      ]
+    ]
+  },
+  {
+    "id": "a94f5fb0094afef3",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Save wave result",
+    "x": 650,
+    "y": 360,
+    "wires": [
+      [
+        "ff6c5ea02825629c"
+      ]
+    ]
+  },
+  {
+    "id": "ff6c5ea02825629c",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Wave API success",
+    "func": "msg.statusCode=200;msg.payload={ok:true,message:'Wave result stored'};return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 870,
+    "y": 360,
+    "wires": [
+      [
+        "f586e0275b9cd669"
+      ]
+    ]
+  },
+  {
+    "id": "f586e0275b9cd669",
+    "type": "http response",
+    "z": "52ae7c11408663f5",
+    "name": "Wave response",
+    "statusCode": "",
+    "headers": {},
+    "x": 1090,
+    "y": 380,
+    "wires": []
+  },
+  {
+    "id": "40acb978df7f1f3b",
+    "type": "http in",
+    "z": "52ae7c11408663f5",
+    "name": "Finalise attendance session",
+    "url": "/continio-api/finalize-session",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 180,
+    "y": 480,
+    "wires": [
+      [
+        "d3ebea28a8cc5d58"
+      ]
+    ]
+  },
+  {
+    "id": "d3ebea28a8cc5d58",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Build final attendance",
+    "func": "const sid=Number((msg.payload||{}).session_id);\nif(!Number.isInteger(sid)){msg.statusCode=400;msg.payload={ok:false,error:'session_id is required'};return [null,msg];}\nmsg.topic=\"INSERT INTO attendance (session_id,student_id,automated_status,final_status) SELECT session_id,student_id,CASE WHEN COUNT(*)<3 THEN 'review' WHEN SUM(result='present')=3 THEN 'present' WHEN SUM(result='present')=2 THEN 'review' ELSE 'absent' END,CASE WHEN COUNT(*)<3 THEN NULL WHEN SUM(result='present')=3 THEN 'present' WHEN SUM(result='present')=2 THEN NULL ELSE 'absent' END FROM wave_results WHERE session_id=? GROUP BY session_id,student_id ON DUPLICATE KEY UPDATE automated_status=VALUES(automated_status),final_status=VALUES(final_status)\";\nmsg.payload=[sid];return [msg,null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 430,
+    "y": 480,
+    "wires": [
+      [
+        "911d2b1803b20921"
+      ],
+      [
+        "26471485aae71725"
+      ]
+    ]
+  },
+  {
+    "id": "911d2b1803b20921",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Calculate attendance",
+    "x": 670,
+    "y": 460,
+    "wires": [
+      [
+        "5085cb54189a48e6"
+      ]
+    ]
+  },
+  {
+    "id": "5085cb54189a48e6",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Finalise API success",
+    "func": "msg.statusCode=200;msg.payload={ok:true,message:'Attendance calculated'};return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 890,
+    "y": 460,
+    "wires": [
+      [
+        "26471485aae71725"
+      ]
+    ]
+  },
+  {
+    "id": "26471485aae71725",
+    "type": "http response",
+    "z": "52ae7c11408663f5",
+    "name": "Finalise response",
+    "statusCode": "",
+    "headers": {},
+    "x": 1110,
+    "y": 480,
+    "wires": []
+  },
+  {
+    "id": "63d5a9be80c4ac4c",
+    "type": "http in",
+    "z": "52ae7c11408663f5",
+    "name": "ContinIo health",
+    "url": "/continio-api/health",
+    "method": "get",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 150,
+    "y": 560,
+    "wires": [
+      [
+        "6b5efbaad28f91fb"
+      ]
+    ]
+  },
+  {
+    "id": "6b5efbaad28f91fb",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Health response",
+    "func": "msg.payload={ok:true,service:'ContinIo',time:new Date().toISOString()};return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 390,
+    "y": 560,
+    "wires": [
+      [
+        "6a8019991ea5ab00"
+      ]
+    ]
+  },
+  {
+    "id": "6a8019991ea5ab00",
+    "type": "http response",
+    "z": "52ae7c11408663f5",
+    "name": "Health HTTP response",
+    "statusCode": "",
+    "headers": {},
+    "x": 640,
+    "y": 560,
+    "wires": []
+  },
+  {
+    "id": "e36a42ef72651072",
+    "type": "comment",
+    "z": "52ae7c11408663f5",
+    "name": "SETUP AFTER IMPORT",
+    "info": "1. Open the config node named \u201cContinIo MySQL \u2014 SET PASSWORD\u201d.\n2. Enter MySQL username root and your password.\n3. Deploy.\n4. Open http://localhost:1880/dashboard/admin\n\nAPI:\nPOST /continio-api/wave-result\n{session_id, student_id, wave_number, result, confidence}\n\nPOST /continio-api/finalize-session\n{session_id}\n\nGET /continio-api/health\n\nFor production, configure HTTPS and authentication in Node-RED settings.js. Do not expose port 1880 directly to the internet.",
+    "x": 170,
+    "y": 660,
+    "wires": []
+  },
+  {
+    "id": "f779bc7f812228be",
+    "type": "ui-page",
+    "name": "Home",
+    "ui": "f16557447a684662",
+    "path": "/home",
+    "icon": "login",
+    "layout": "grid",
+    "theme": "46097d10e2c95a51",
+    "breakpoints": [
+      {
+        "name": "Default",
+        "px": 0,
+        "cols": 3
+      },
+      {
+        "name": "Tablet",
+        "px": 576,
+        "cols": 6
+      },
+      {
+        "name": "Small Desktop",
+        "px": 768,
+        "cols": 9
+      },
+      {
+        "name": "Desktop",
+        "px": 1024,
+        "cols": 12
+      }
+    ],
+    "order": 0,
+    "className": "",
+    "visible": true,
+    "disabled": false
+  },
+  {
+    "id": "48461a4fc965858a",
+    "type": "ui-group",
+    "name": "ContinIo Access",
+    "page": "f779bc7f812228be",
+    "width": 12,
+    "height": 12,
+    "order": 1,
+    "showTitle": false,
+    "className": "",
+    "visible": true,
+    "disabled": false,
+    "groupType": "default"
+  },
+  {
+    "id": "e94c6d65aec84884",
+    "type": "ui-template",
+    "z": "52ae7c11408663f5",
+    "group": "48461a4fc965858a",
+    "page": "",
+    "ui": "",
+    "name": "Login and Registration",
+    "order": 1,
+    "width": 12,
+    "height": 12,
+    "head": "",
+    "format": "<template>\n<div class=\"auth-shell\"><div class=\"brand\"><div class=\"logo\">C</div><h1>ContinIo</h1><p>Smart attendance, continuous verification.</p></div>\n<div class=\"auth-card\"><div class=\"switcher\"><button :class=\"{on:mode==='login'}\" @click=\"mode='login'\">Login</button><button :class=\"{on:mode==='register'}\" @click=\"mode='register'\">Register</button></div>\n<form @submit.prevent=\"submit\"><select v-model=\"form.role\" required><option value=\"teacher\">Teacher</option><option value=\"admin\">Admin</option></select>\n<input v-if=\"mode==='register'\" v-model.trim=\"form.name\" placeholder=\"Full name\" required><input v-if=\"mode==='register'&&form.role==='teacher'\" v-model.trim=\"form.teacher_id\" placeholder=\"Teacher ID\" required>\n<input v-model.trim=\"form.email\" type=\"email\" placeholder=\"Email\" required><input v-if=\"mode==='register'\" v-model.trim=\"form.mobile\" placeholder=\"Mobile number\" required>\n<input v-model=\"form.password\" type=\"password\" placeholder=\"Password (minimum 8 characters)\" minlength=\"8\" required><input v-if=\"mode==='register'\" v-model=\"form.confirm\" type=\"password\" placeholder=\"Confirm password\" required>\n<input v-if=\"mode==='register'&&form.role==='admin'\" v-model=\"form.admin_code\" type=\"password\" placeholder=\"Admin registration code\" required>\n<button class=\"submit\" :disabled=\"busy\">{{busy?'Please wait\u2026':(mode==='login'?'Login':'Create account')}}</button></form>\n<div v-if=\"message\" class=\"message\" :class=\"ok?'good':'bad'\">{{message}}</div></div></div>\n</template>\n<script>export default{data(){return{mode:'login',busy:false,message:'',ok:false,form:{role:'teacher',name:'',teacher_id:'',email:'',mobile:'',password:'',confirm:'',admin_code:''}}},async mounted(){try{const r=await fetch('/continio-api/auth/me',{credentials:'same-origin',headers:{Authorization:'Bearer '+(sessionStorage.getItem('continio_session_token')||'')}});if(r.ok){const j=await r.json();location.href=j.user.role==='admin'?'/dashboard/admin':'/dashboard/teacher'}}catch(e){}},methods:{async submit(){this.message='';if(this.mode==='register'&&this.form.password!==this.form.confirm){this.message='Passwords do not match';return}this.busy=true;try{const r=await fetch('/continio-api/auth/'+this.mode,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(this.form)});const j=await r.json();this.ok=r.ok;this.message=j.message||j.error||'Request failed';if(r.ok&&this.mode==='login'){sessionStorage.setItem('continio_session_token',j.session_token||'');location.href=j.user.role==='admin'?'/dashboard/admin':'/dashboard/teacher';}if(r.ok&&this.mode==='register'){this.mode='login';this.form.password='';this.form.confirm=''}}catch(e){this.message='Cannot reach ContinIo';this.ok=false}finally{this.busy=false}}}}</script>\n<style>.auth-shell{min-height:calc(100vh - 100px);display:grid;grid-template-columns:1fr 440px;align-items:center;gap:60px;max-width:1100px;margin:auto;padding:30px}.brand .logo{width:76px;height:76px;border-radius:24px;background:#f97316;color:#fff;display:grid;place-items:center;font-size:42px;font-weight:900;box-shadow:0 14px 35px #f9731655}.brand h1{font-size:64px;margin:18px 0 5px;color:#9a3412}.brand p{font-size:20px;color:#78675b}.auth-card{background:#fff;border:1px solid #fed7aa;border-radius:24px;padding:26px;box-shadow:0 18px 50px #7c2d1220}.switcher{display:grid;grid-template-columns:1fr 1fr;background:#fff7ed;padding:5px;border-radius:13px;margin-bottom:20px}.switcher button{border:0;background:transparent;padding:10px;border-radius:9px;font-weight:800}.switcher button.on{background:#f97316;color:#fff}.auth-card form{display:grid;gap:12px}.auth-card input,.auth-card select{border:1px solid #fdba74;border-radius:11px;padding:12px;background:#fff}.submit{border:0;border-radius:11px;padding:13px;background:#f97316;color:#fff;font-weight:850;cursor:pointer}.message{margin-top:15px;padding:10px;border-radius:10px}.good{background:#dcfce7;color:#166534}.bad{background:#fee2e2;color:#991b1b}@media(max-width:800px){.auth-shell{grid-template-columns:1fr;gap:15px}.brand{text-align:center}.brand .logo{margin:auto}.brand h1{font-size:44px}}</style>",
+    "storeOutMessages": true,
+    "passthru": false,
+    "resendOnRefresh": true,
+    "templateScope": "local",
+    "className": "",
+    "x": 210,
+    "y": 820,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "b0fcf2a1415334db",
+    "type": "ui-page",
+    "name": "ContinIo Teacher",
+    "ui": "f16557447a684662",
+    "path": "/teacher",
+    "icon": "human-male-board",
+    "layout": "grid",
+    "theme": "46097d10e2c95a51",
+    "breakpoints": [
+      {
+        "name": "Default",
+        "px": 0,
+        "cols": 3
+      },
+      {
+        "name": "Tablet",
+        "px": 576,
+        "cols": 6
+      },
+      {
+        "name": "Small Desktop",
+        "px": 768,
+        "cols": 9
+      },
+      {
+        "name": "Desktop",
+        "px": 1024,
+        "cols": 12
+      }
+    ],
+    "order": 2,
+    "className": "",
+    "visible": true,
+    "disabled": false
+  },
+  {
+    "id": "ef74b011e080926a",
+    "type": "ui-group",
+    "name": "Attendance Review",
+    "page": "b0fcf2a1415334db",
+    "width": 12,
+    "height": 12,
+    "order": 1,
+    "showTitle": false,
+    "className": "",
+    "visible": true,
+    "disabled": false,
+    "groupType": "default"
+  },
+  {
+    "id": "d98d57d0870bd2af",
+    "type": "ui-template",
+    "z": "52ae7c11408663f5",
+    "group": "ef74b011e080926a",
+    "page": "",
+    "ui": "",
+    "name": "Teacher Attendance ContinIo",
+    "order": 1,
+    "width": 12,
+    "height": 12,
+    "head": "",
+    "format": "<template><div class=\"teacher-shell\"><header><div><small>TEACHER CONTINIO</small><h1>{{meta.subject||'Current Attendance'}}</h1><p v-if=\"meta.timetable_id\">{{meta.day}} \u00b7 {{meta.period_label}} \u00b7 {{meta.section}}</p></div><div class=\"head-actions\"><span>{{user.name}}</span><button @click=\"logout\">Logout</button></div></header>\n<div v-if=\"message\" class=\"message\" :class=\"ok?'good':'bad'\">{{message}}</div><section v-if=\"loading\" class=\"state\">Loading attendance\u2026</section><section v-else-if=\"!meta.timetable_id\" class=\"state\">No timetable periods are assigned to your teacher account.</section>\n<section v-else class=\"attendance\"><div class=\"period-picker\"><label>Scheduled period</label><select v-model.number=\"selectedTimetable\" @change=\"load(selectedTimetable)\"><option v-for=\"x in schedules\" :key=\"x.timetable_id\" :value=\"x.timetable_id\">{{x.day}} \u00b7 {{x.period_label}} ({{x.time}}) \u00b7 {{x.subject}} \u00b7 {{x.section}} \u00b7 Room {{x.room}}</option></select></div><div v-if=\"!meta.session_id\" class=\"schedule-note\">This assigned period is visible now. Attendance submission becomes available when its attendance session starts.</div><div class=\"summary\"><div><b>{{meta.period_label}}</b><span>{{meta.time}}</span></div><div><b>{{meta.subject}}</b><span>Subject</span></div><div><b>{{meta.section}}</b><span>Section</span></div><div><b>{{students.length}}</b><span>Students</span></div></div>\n<div v-if=\"meta.session_id\" class=\"wave-progress\"><b>Verification progress</b><span v-for=\"w in [1,2,3]\" :key=\"w\" :class=\"{done:meta.wave_progress>=w}\">Wave {{w}}</span></div><div class=\"student\" v-for=\"s in students\" :key=\"s.id\" :class=\"{review:s.review}\"><img :src=\"s.photo_url||fallback\" @error=\"$event.target.src=fallback\"><div class=\"identity\"><b>{{s.name}}</b><span>{{s.usn}} \u00b7 RFID: {{s.checked_in?'Checked in':'Not checked in'}}</span><small>Waves recorded: {{s.waves_completed}}/3</small><em v-if=\"s.review\">Please review</em></div><div class=\"toggle\"><span :class=\"{active:s.status==='absent'}\">Absent</span><label><input type=\"checkbox\" v-model=\"s.present\"><i></i></label><span :class=\"{active:s.status==='present'}\">Present</span></div></div>\n<button class=\"submit\" @click=\"submitAttendance\" :disabled=\"submitting||!meta.session_id||meta.wave_progress<3\">{{submitting?'Submitting\u2026':(!meta.session_id?'Awaiting attendance session':meta.wave_progress<3?'Waiting for Wave 3':'Submit Attendance')}}</button></section></div></template>\n<script>export default{data(){return{user:{},meta:{},schedules:[],selectedTimetable:0,students:[],loading:true,submitting:false,message:'',ok:false,fallback:'data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" width=\"96\" height=\"96\"%3E%3Crect width=\"100%25\" height=\"100%25\" fill=\"%23ffedd5\"/%3E%3Ccircle cx=\"48\" cy=\"36\" r=\"18\" fill=\"%23fb923c\"/%3E%3Cpath d=\"M18 88c3-22 17-33 30-33s27 11 30 33\" fill=\"%23fb923c\"/%3E%3C/svg%3E'}},async mounted(){await this.load();this.refreshTimer=setInterval(()=>this.refreshAttendance(),10000)},beforeUnmount(){clearInterval(this.refreshTimer)},methods:{async load(timetableId=0){this.loading=true;try{const me=await fetch('/continio-api/auth/me',{credentials:'same-origin',headers:{Authorization:'Bearer '+(sessionStorage.getItem('continio_session_token')||'')}});if(!me.ok){sessionStorage.removeItem('continio_session_token');location.href='/dashboard/home';return}const mj=await me.json();if(mj.user.role!=='teacher'){sessionStorage.removeItem('continio_session_token');location.href='/dashboard/home';return}this.user=mj.user;const r=await fetch('/continio-api/teacher/current'+(timetableId?'?timetable_id='+encodeURIComponent(timetableId):''),{credentials:'same-origin',headers:{Authorization:'Bearer '+(sessionStorage.getItem('continio_session_token')||'')}});const j=await r.json();if(!r.ok){this.message=j.error||'Unable to load attendance';this.ok=false;return}this.meta=j.meta||{};this.schedules=j.schedules||[];this.selectedTimetable=this.meta.timetable_id||0;this.students=(j.students||[]).map(s=>({...s,present:s.status==='present'}))}finally{this.loading=false}},async refreshAttendance(){if(!this.submitting&&(!this.meta.session_id||Number(this.meta.wave_progress)<3))await this.load(this.selectedTimetable)},async submitAttendance(){if(!confirm('Submit the final attendance? It will be locked after submission.'))return;this.submitting=true;try{const statuses=this.students.map(s=>({student_id:s.id,status:s.present?'present':'absent'}));const r=await fetch('/continio-api/teacher/submit',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(sessionStorage.getItem('continio_session_token')||'')},credentials:'same-origin',body:JSON.stringify({session_id:this.meta.session_id,statuses})});const j=await r.json();this.ok=r.ok;this.message=j.message||j.error;if(r.ok)this.meta={}}finally{this.submitting=false}},async logout(){await fetch('/continio-api/auth/logout',{method:'POST',credentials:'same-origin',headers:{Authorization:'Bearer '+(sessionStorage.getItem('continio_session_token')||'')}});sessionStorage.removeItem('continio_session_token');location.href='/dashboard/home'}}}</script>\n<style>.teacher-shell{max-width:1050px;margin:auto;padding:12px;color:#2c241f}.teacher-shell header{background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border-radius:24px;padding:25px 30px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 14px 35px #f9731640}.teacher-shell h1{margin:4px 0}.teacher-shell small{font-weight:800;letter-spacing:1.5px}.head-actions{display:flex;gap:12px;align-items:center}.head-actions button{border:1px solid #fff;background:transparent;color:#fff;border-radius:10px;padding:8px 12px}.period-picker{display:grid;gap:7px;margin-bottom:16px}.period-picker label{font-size:12px;text-transform:uppercase;letter-spacing:.7px;font-weight:850;color:#9a3412}.period-picker select{width:100%;border:1px solid #fb923c;border-radius:12px;padding:12px;background:white;color:#2c241f;font-weight:700}.schedule-note{background:#fff7ed;color:#9a3412;border:1px solid #fdba74;border-radius:12px;padding:12px;margin-bottom:15px}.attendance{background:#fff;border:1px solid #fed7aa;border-radius:22px;padding:22px;margin-top:18px}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}.summary div{background:#fff7ed;border-radius:14px;padding:14px}.summary b,.summary span{display:block}.summary span{color:#87756a;font-size:12px;margin-top:5px}.wave-progress{display:flex;align-items:center;gap:9px;background:#fff7ed;border-radius:13px;padding:12px;margin-bottom:12px}.wave-progress span{padding:6px 10px;border-radius:999px;background:#e7e5e4;color:#78716c;font-size:12px;font-weight:800}.wave-progress span.done{background:#22c55e;color:white}.identity small{display:block;color:#9a3412}.student{display:grid;grid-template-columns:64px 1fr auto;align-items:center;gap:14px;padding:13px;border-bottom:1px solid #ffedd5}.student.review{background:#fffbeb}.student img{width:58px;height:58px;object-fit:cover;border-radius:50%;border:3px solid #fed7aa}.identity b,.identity span,.identity em{display:block}.identity span{color:#7c6e65}.identity em{color:#b45309;font-size:12px}.toggle{display:flex;align-items:center;gap:9px}.toggle span{font-size:13px;color:#9a8d84}.toggle span.active{font-weight:850;color:#9a3412}.toggle label{position:relative;width:54px;height:28px}.toggle input{display:none}.toggle label i{position:absolute;inset:0;background:#ef4444;border-radius:999px}.toggle label i:after{content:'';position:absolute;width:22px;height:22px;left:3px;top:3px;border-radius:50%;background:#fff;transition:.2s}.toggle input:checked+i{background:#22c55e}.toggle input:checked+i:after{transform:translateX(26px)}.submit{display:block;margin:22px auto 0;border:0;border-radius:12px;padding:13px 30px;background:#f97316;color:white;font-weight:850}.state{background:#fff;border-radius:20px;padding:50px;text-align:center;margin-top:20px}.message{margin-top:15px;padding:11px;border-radius:10px}.good{background:#dcfce7;color:#166534}.bad{background:#fee2e2;color:#991b1b}@media(max-width:700px){.summary{grid-template-columns:1fr 1fr}.student{grid-template-columns:52px 1fr}.toggle{grid-column:1/3;justify-content:flex-end}.teacher-shell header{align-items:flex-start}.head-actions span{display:none}}</style>",
+    "storeOutMessages": true,
+    "passthru": false,
+    "resendOnRefresh": true,
+    "templateScope": "local",
+    "className": "",
+    "x": 220,
+    "y": 880,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "ca5a60bce8e45ed8",
+    "type": "inject",
+    "z": "52ae7c11408663f5",
+    "name": "Initialize secure authentication",
+    "props": [
+      {
+        "p": "topic",
+        "vt": "str"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": true,
+    "onceDelay": 1,
+    "topic": "CREATE TABLE IF NOT EXISTS continio_accounts (id INT AUTO_INCREMENT PRIMARY KEY, role ENUM('admin','teacher') NOT NULL, teacher_id INT NULL, name VARCHAR(100) NOT NULL, email VARCHAR(150) NOT NULL UNIQUE, mobile VARCHAR(20) NOT NULL, password_salt CHAR(32) NOT NULL, password_hash CHAR(64) NOT NULL, active BOOLEAN DEFAULT TRUE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL ON UPDATE CASCADE)",
+    "x": 180,
+    "y": 980,
+    "wires": [
+      [
+        "6d70de7aae831789"
+      ]
+    ]
+  },
+  {
+    "id": "6d70de7aae831789",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Create authentication table",
+    "x": 460,
+    "y": 980,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "09271c1455ace212",
+    "type": "http in",
+    "z": "52ae7c11408663f5",
+    "name": "Register account",
+    "url": "/continio-api/auth/register",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 140,
+    "y": 1080,
+    "wires": [
+      [
+        "afd40c6ed0b6f791"
+      ]
+    ]
+  },
+  {
+    "id": "afd40c6ed0b6f791",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Validate registration",
+    "func": "const p=msg.payload||{}; const role=p.role; const email=String(p.email||'').trim().toLowerCase();\nif(!['admin','teacher'].includes(role)||!p.name||!email||!p.mobile||String(p.password||'').length<8){msg.statusCode=400;msg.payload={error:'Complete every field; password must contain at least 8 characters'};return [null,null,msg];}\nconst adminCode=String(env.get('CONTINIO_ADMIN_CODE')||'');if(role==='admin'&&(!adminCode||String(p.admin_code)!==adminCode)){msg.statusCode=403;msg.payload={error:'Invalid admin registration code'};return [null,null,msg];}\nmsg.reg={role,name:String(p.name).trim(),teacher_code:String(p.teacher_id||'').trim(),email,mobile:String(p.mobile).trim(),password:String(p.password)};\nif(role==='teacher'){if(!msg.reg.teacher_code){msg.statusCode=400;msg.payload={error:'Teacher ID is required'};return [null,null,msg];}msg.topic=\"INSERT INTO teachers (name,teacher_id,email,mobile,password_hash) VALUES (?,?,?,?,?)\";msg.payload=[msg.reg.name,msg.reg.teacher_code,email,msg.reg.mobile,'managed_by_continio_accounts'];return [msg,null,null];}\nreturn [null,msg,null];",
+    "outputs": 3,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 370,
+    "y": 1080,
+    "wires": [
+      [
+        "31030f6ead68b983"
+      ],
+      [
+        "31d9178ff7bb4df1"
+      ],
+      [
+        "35d0a3748df997aa"
+      ]
+    ]
+  },
+  {
+    "id": "31030f6ead68b983",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Create teacher profile",
+    "x": 610,
+    "y": 1050,
+    "wires": [
+      [
+        "31d9178ff7bb4df1"
+      ]
+    ]
+  },
+  {
+    "id": "31d9178ff7bb4df1",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Build secure account",
+    "func": "if(msg.reg.role==='teacher')msg.reg.dbTeacherId=Number(msg.payload.insertId);else msg.reg.dbTeacherId=null;\nmsg.topic=\"INSERT INTO continio_accounts (role,teacher_id,name,email,mobile,password_salt,password_hash) SELECT ?,?,?,?,?,salt,SHA2(CONCAT(?,salt),256) FROM (SELECT HEX(RANDOM_BYTES(16)) AS salt) x\";\nmsg.payload=[msg.reg.role,msg.reg.dbTeacherId,msg.reg.name,msg.reg.email,msg.reg.mobile,msg.reg.password];return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 840,
+    "y": 1080,
+    "wires": [
+      [
+        "b5563d90899fd54e"
+      ]
+    ]
+  },
+  {
+    "id": "b5563d90899fd54e",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Create login account",
+    "x": 1060,
+    "y": 1080,
+    "wires": [
+      [
+        "9ffd0ec5e9ad242d"
+      ]
+    ]
+  },
+  {
+    "id": "9ffd0ec5e9ad242d",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Registration success",
+    "func": "msg.statusCode=201;msg.payload={ok:true,message:'Registration successful. You can now log in.'};return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1280,
+    "y": 1080,
+    "wires": [
+      [
+        "35d0a3748df997aa"
+      ]
+    ]
+  },
+  {
+    "id": "35d0a3748df997aa",
+    "type": "http response",
+    "z": "52ae7c11408663f5",
+    "name": "Registration response",
+    "statusCode": "",
+    "headers": {},
+    "x": 1500,
+    "y": 1080,
+    "wires": []
+  },
+  {
+    "id": "7af3ba18b734f71b",
+    "type": "http in",
+    "z": "52ae7c11408663f5",
+    "name": "Login",
+    "url": "/continio-api/auth/login",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 120,
+    "y": 1200,
+    "wires": [
+      [
+        "a5fb6ae53699e568"
+      ]
+    ]
+  },
+  {
+    "id": "a5fb6ae53699e568",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Rate limit and verify login",
+    "func": "const p=msg.payload||{}, email=String(p.email||'').trim().toLowerCase(), ip=(msg.req&&msg.req.ip)||'local';let attempts=flow.get('loginAttempts')||{};let a=attempts[ip]||{count:0,until:0};if(a.until>Date.now()){msg.statusCode=429;msg.payload={error:'Too many attempts. Try again later.'};return [null,msg];}msg.loginIp=ip;msg.loginPassword=String(p.password||'');msg.topic=\"SELECT id,role,teacher_id,name,email,mobile,active,password_hash=SHA2(CONCAT(?,password_salt),256) AS password_ok FROM continio_accounts WHERE email=? LIMIT 1\";msg.payload=[msg.loginPassword,email];return [msg,null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 380,
+    "y": 1200,
+    "wires": [
+      [
+        "c4038dc8e7486834"
+      ],
+      [
+        "9f44a941bab6b8c1"
+      ]
+    ]
+  },
+  {
+    "id": "c4038dc8e7486834",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Check password hash",
+    "x": 640,
+    "y": 1180,
+    "wires": [
+      [
+        "21d08e89e2911262"
+      ]
+    ]
+  },
+  {
+    "id": "21d08e89e2911262",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Create secure session",
+    "func": "const row=Array.isArray(msg.payload)?msg.payload[0]:null, ip=msg.loginIp;let attempts=flow.get('loginAttempts')||{};if(!row||!row.active||Number(row.password_ok)!==1){let a=attempts[ip]||{count:0,until:0};a.count++;if(a.count>=5){a.until=Date.now()+15*60*1000;a.count=0;}attempts[ip]=a;flow.set('loginAttempts',attempts);msg.statusCode=401;msg.payload={error:'Invalid email or password'};return msg;}delete attempts[ip];flow.set('loginAttempts',attempts);const token=[msg._msgid,Date.now().toString(36),Math.random().toString(36).slice(2),Math.random().toString(36).slice(2)].join('.');let sessions=flow.get('authSessions')||{};sessions[token]={id:row.id,role:row.role,teacher_id:row.teacher_id,name:row.name,email:row.email,mobile:row.mobile,expires:Date.now()+8*60*60*1000};flow.set('authSessions',sessions);msg.headers={'Set-Cookie':'dashboard_session='+token+'; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800','Cache-Control':'no-store'};msg.payload={ok:true,message:'Login successful',user:sessions[token],session_token:token};return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 870,
+    "y": 1180,
+    "wires": [
+      [
+        "9f44a941bab6b8c1"
+      ]
+    ]
+  },
+  {
+    "id": "9f44a941bab6b8c1",
+    "type": "http response",
+    "z": "52ae7c11408663f5",
+    "name": "Login response",
+    "statusCode": "",
+    "headers": {},
+    "x": 1100,
+    "y": 1200,
+    "wires": []
+  },
+  {
+    "id": "0834a5096b071952",
+    "type": "http in",
+    "z": "52ae7c11408663f5",
+    "name": "Current account",
+    "url": "/continio-api/auth/me",
+    "method": "get",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 150,
+    "y": 1300,
+    "wires": [
+      [
+        "8c5d0caeb17fbf20"
+      ]
+    ]
+  },
+  {
+    "id": "8c5d0caeb17fbf20",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Authenticate session",
+    "func": "const cookie=(msg.req&&msg.req.headers&&msg.req.headers.cookie)||'';const m=cookie.match(/(?:^|;\\s*)dashboard_session=([^;]+)/);const authorization=(msg.req&&msg.req.headers&&msg.req.headers.authorization)||'';const bearer=authorization.match(/^Bearer\\s+(.+)$/i);const sessionToken=(m&&m[1])||(bearer&&bearer[1]);let sessions=flow.get('authSessions')||{};const user=sessionToken&&sessions[sessionToken];if(!user||user.expires<Date.now()){if(sessionToken)delete sessions[sessionToken];flow.set('authSessions',sessions);msg.statusCode=401;msg.payload={error:'Authentication required'};return [null,msg];}user.expires=Date.now()+8*60*60*1000;sessions[sessionToken]=user;flow.set('authSessions',sessions);msg.auth=user;return [msg,null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 380,
+    "y": 1300,
+    "wires": [
+      [
+        "d650da2ff7073dfd"
+      ],
+      [
+        "b8ac990ba1f1c91a"
+      ]
+    ]
+  },
+  {
+    "id": "d650da2ff7073dfd",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Return account",
+    "func": "msg.headers={'Cache-Control':'no-store'};msg.payload={ok:true,user:msg.auth};return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 620,
+    "y": 1280,
+    "wires": [
+      [
+        "b8ac990ba1f1c91a"
+      ]
+    ]
+  },
+  {
+    "id": "b8ac990ba1f1c91a",
+    "type": "http response",
+    "z": "52ae7c11408663f5",
+    "name": "Account response",
+    "statusCode": "",
+    "headers": {},
+    "x": 850,
+    "y": 1300,
+    "wires": []
+  },
+  {
+    "id": "136fc3fd18eab53c",
+    "type": "http in",
+    "z": "52ae7c11408663f5",
+    "name": "Logout",
+    "url": "/continio-api/auth/logout",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 140,
+    "y": 1360,
+    "wires": [
+      [
+        "30efaf26b8dad0ed"
+      ]
+    ]
+  },
+  {
+    "id": "30efaf26b8dad0ed",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Destroy session",
+    "func": "const cookie=(msg.req&&msg.req.headers&&msg.req.headers.cookie)||'',m=cookie.match(/(?:^|;\\s*)dashboard_session=([^;]+)/);const authorization=(msg.req&&msg.req.headers&&msg.req.headers.authorization)||'';const bearer=authorization.match(/^Bearer\\s+(.+)$/i);const sessionToken=(m&&m[1])||(bearer&&bearer[1]);let s=flow.get('authSessions')||{};if(sessionToken)delete s[sessionToken];flow.set('authSessions',s);msg.headers={'Set-Cookie':'dashboard_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'};msg.payload={ok:true};return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 370,
+    "y": 1360,
+    "wires": [
+      [
+        "0c189a98350daa54"
+      ]
+    ]
+  },
+  {
+    "id": "0c189a98350daa54",
+    "type": "http response",
+    "z": "52ae7c11408663f5",
+    "name": "Logout response",
+    "statusCode": "",
+    "headers": {},
+    "x": 610,
+    "y": 1360,
+    "wires": []
+  },
+  {
+    "id": "99ee0821c7a17772",
+    "type": "http in",
+    "z": "52ae7c11408663f5",
+    "name": "Teacher current attendance",
+    "url": "/continio-api/teacher/current",
+    "method": "get",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 180,
+    "y": 1460,
+    "wires": [
+      [
+        "a4595cd661ffab9c"
+      ]
+    ]
+  },
+  {
+    "id": "a4595cd661ffab9c",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Authorize teacher",
+    "func": "const cookie=(msg.req&&msg.req.headers&&msg.req.headers.cookie)||'';const m=cookie.match(/(?:^|;\\s*)dashboard_session=([^;]+)/);const authorization=(msg.req&&msg.req.headers&&msg.req.headers.authorization)||'';const bearer=authorization.match(/^Bearer\\s+(.+)$/i);const sessionToken=(m&&m[1])||(bearer&&bearer[1]);let sessions=flow.get('authSessions')||{};const user=sessionToken&&sessions[sessionToken];if(!user||user.expires<Date.now()){if(sessionToken)delete sessions[sessionToken];flow.set('authSessions',sessions);msg.statusCode=401;msg.payload={error:'Authentication required'};return [null,msg];}user.expires=Date.now()+8*60*60*1000;sessions[sessionToken]=user;flow.set('authSessions',sessions);msg.auth=user;if(user.role!=='teacher'||!user.teacher_id){msg.statusCode=403;msg.payload={error:'Teacher access required'};return [null,msg];}return [msg,null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 430,
+    "y": 1460,
+    "wires": [
+      [
+        "406e40a3fc3a1576"
+      ],
+      [
+        "e921f7fb3959e6aa"
+      ]
+    ]
+  },
+  {
+    "id": "406e40a3fc3a1576",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Build teacher session query",
+    "func": "const requested=Number(msg.req&&msg.req.query&&msg.req.query.timetable_id);msg.requestedTimetableId=Number.isInteger(requested)&&requested>0?requested:0;msg.topic=\"SELECT tt.id AS timetable_id,tt.day_of_week,tt.period_number,TIME_FORMAT(tt.start_time,'%H:%i') AS scheduled_start,TIME_FORMAT(tt.end_time,'%H:%i') AS scheduled_end,sub.name AS subject,c.name AS section,r.room_number,ses.id AS session_id,ses.status AS session_status,st.id,st.name,st.usn,st.photo_path AS photo_url,(SELECT COUNT(*) FROM wave_results wc WHERE wc.session_id=ses.id AND wc.student_id=st.id) AS waves_completed,IF(EXISTS(SELECT 1 FROM student_checkins rc WHERE rc.session_id=ses.id AND rc.student_id=st.id),1,0) AS checked_in,a.automated_status,COALESCE(a.teacher_status,a.final_status,IF(a.automated_status='present','present','absent'),'present') AS status FROM timetable tt JOIN subjects sub ON sub.id=tt.subject_id JOIN classes c ON c.id=tt.class_id JOIN rooms r ON r.id=tt.room_id JOIN students st ON st.class_id=tt.class_id AND st.active=1 LEFT JOIN attendance_sessions ses ON ses.id=(SELECT s2.id FROM attendance_sessions s2 WHERE s2.timetable_id=tt.id AND s2.session_date=CURDATE() AND s2.status IN ('active','processing','teacher_review','confirmed') ORDER BY s2.id DESC LIMIT 1) LEFT JOIN attendance a ON a.session_id=ses.id AND a.student_id=st.id WHERE tt.active=1 AND tt.teacher_id=? ORDER BY (ses.id IS NOT NULL) DESC,(tt.day_of_week=DAYNAME(CURDATE())) DESC,FIELD(tt.day_of_week,'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'),tt.period_number,st.name\";msg.payload=[msg.auth.teacher_id];return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 680,
+    "y": 1440,
+    "wires": [
+      [
+        "66bc10cbf11bbcee"
+      ]
+    ]
+  },
+  {
+    "id": "66bc10cbf11bbcee",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Load pre-marked attendance",
+    "x": 930,
+    "y": 1440,
+    "wires": [
+      [
+        "8886d3e1d9bfe620"
+      ]
+    ]
+  },
+  {
+    "id": "8886d3e1d9bfe620",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Format teacher attendance",
+    "func": "const rows=Array.isArray(msg.payload)?msg.payload:[];\nif(!rows.length){msg.payload={ok:true,meta:{},schedules:[],students:[]};return msg;}\nconst schedules=[];const seen=new Set();\nfor(const r of rows){if(!seen.has(r.timetable_id)){seen.add(r.timetable_id);schedules.push({timetable_id:r.timetable_id,day:r.day_of_week,period_label:'Period '+r.period_number,time:(r.scheduled_start||'\u2014')+'\u2013'+(r.scheduled_end||'\u2014'),subject:r.subject,section:r.section,room:r.room_number,session_id:r.session_id||null});}}\nconst requested=Number(msg.requestedTimetableId)||0;const chosen=rows.find(r=>r.timetable_id===requested)||rows[0];const selected=rows.filter(r=>r.timetable_id===chosen.timetable_id&&String(r.session_id||'')===String(chosen.session_id||''));\nmsg.payload={ok:true,meta:{timetable_id:chosen.timetable_id,session_id:chosen.session_id||null,day:chosen.day_of_week,period_label:'Period '+chosen.period_number,time:(chosen.scheduled_start||'\u2014')+'\u2013'+(chosen.scheduled_end||'\u2014'),subject:chosen.subject,section:chosen.section,room:chosen.room_number,session_status:chosen.session_status||'scheduled',wave_progress:Math.max(0,...selected.map(r=>Number(r.waves_completed)||0))},schedules,students:selected.map(r=>({id:r.id,name:r.name,usn:r.usn,photo_url:r.photo_url,status:r.status||'present',checked_in:Number(r.checked_in)===1,waves_completed:Number(r.waves_completed)||0,review:r.automated_status==='review'}))};return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1170,
+    "y": 1440,
+    "wires": [
+      [
+        "e921f7fb3959e6aa"
+      ]
+    ]
+  },
+  {
+    "id": "e921f7fb3959e6aa",
+    "type": "http response",
+    "z": "52ae7c11408663f5",
+    "name": "Teacher attendance response",
+    "statusCode": "",
+    "headers": {},
+    "x": 1430,
+    "y": 1460,
+    "wires": []
+  },
+  {
+    "id": "390a4ae9576898ae",
+    "type": "http in",
+    "z": "52ae7c11408663f5",
+    "name": "Submit final attendance",
+    "url": "/continio-api/teacher/submit",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 170,
+    "y": 1580,
+    "wires": [
+      [
+        "920bfafc05aaa4e5"
+      ]
+    ]
+  },
+  {
+    "id": "920bfafc05aaa4e5",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Authorize attendance submission",
+    "func": "const cookie=(msg.req&&msg.req.headers&&msg.req.headers.cookie)||'';const m=cookie.match(/(?:^|;\\s*)dashboard_session=([^;]+)/);const authorization=(msg.req&&msg.req.headers&&msg.req.headers.authorization)||'';const bearer=authorization.match(/^Bearer\\s+(.+)$/i);const sessionToken=(m&&m[1])||(bearer&&bearer[1]);let sessions=flow.get('authSessions')||{};const user=sessionToken&&sessions[sessionToken];if(!user||user.expires<Date.now()){if(sessionToken)delete sessions[sessionToken];flow.set('authSessions',sessions);msg.statusCode=401;msg.payload={error:'Authentication required'};return [null,msg];}user.expires=Date.now()+8*60*60*1000;sessions[sessionToken]=user;flow.set('authSessions',sessions);msg.auth=user;if(user.role!=='teacher'||!user.teacher_id){msg.statusCode=403;msg.payload={error:'Teacher access required'};return [null,msg];}return [msg,null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 450,
+    "y": 1580,
+    "wires": [
+      [
+        "6e3a6d04ab02b6c2"
+      ],
+      [
+        "0658cb1008457aea"
+      ]
+    ]
+  },
+  {
+    "id": "6e3a6d04ab02b6c2",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Validate final statuses",
+    "func": "const p=msg.payload||{},sid=Number(p.session_id),statuses=Array.isArray(p.statuses)?p.statuses:[];if(!Number.isInteger(sid)||!statuses.length){msg.statusCode=400;msg.payload={error:'Invalid attendance submission'};return [null,msg];}const clean=[];for(const x of statuses){const id=Number(x.student_id),s=String(x.status);if(!Number.isInteger(id)||!['present','absent'].includes(s)){msg.statusCode=400;msg.payload={error:'Invalid student status'};return [null,msg];}clean.push({id,status:s});}const statusCase=clean.map(x=>'WHEN '+x.id+\" THEN '\"+x.status+\"'\").join(' '),ids=clean.map(x=>x.id).join(',');msg.sessionId=sid;msg.topic=\"UPDATE attendance a JOIN attendance_sessions ses ON ses.id=a.session_id JOIN timetable tt ON tt.id=ses.timetable_id SET a.teacher_status=CASE a.student_id \"+statusCase+\" END,a.final_status=CASE a.student_id \"+statusCase+\" END,a.teacher_override=(a.automated_status<>CASE a.student_id \"+statusCase+\" END),a.confirmed_at=NOW(),a.submitted_at=NOW() WHERE a.session_id=\"+sid+\" AND tt.teacher_id=\"+Number(msg.auth.teacher_id)+\" AND a.student_id IN (\"+ids+\") AND ses.status<>'submitted'\";msg.payload=[];return [msg,null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 720,
+    "y": 1560,
+    "wires": [
+      [
+        "34c274fb8d45d5cf"
+      ],
+      [
+        "0658cb1008457aea"
+      ]
+    ]
+  },
+  {
+    "id": "34c274fb8d45d5cf",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Save teacher overrides",
+    "x": 970,
+    "y": 1540,
+    "wires": [
+      [
+        "a994909896e46a86"
+      ]
+    ]
+  },
+  {
+    "id": "a994909896e46a86",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Lock submitted session",
+    "func": "msg.topic=\"UPDATE attendance_sessions SET status='submitted',end_time=COALESCE(end_time,NOW()) WHERE id=?\";msg.payload=[msg.sessionId];return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1210,
+    "y": 1540,
+    "wires": [
+      [
+        "7f69b4edb0dc2ffe"
+      ]
+    ]
+  },
+  {
+    "id": "7f69b4edb0dc2ffe",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Lock attendance session",
+    "x": 1450,
+    "y": 1540,
+    "wires": [
+      [
+        "3d0d4eedb441e9d8"
+      ]
+    ]
+  },
+  {
+    "id": "3d0d4eedb441e9d8",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Submission success",
+    "func": "msg.payload={ok:true,message:'Attendance submitted successfully'};return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1660,
+    "y": 1540,
+    "wires": [
+      [
+        "0658cb1008457aea"
+      ]
+    ]
+  },
+  {
+    "id": "0658cb1008457aea",
+    "type": "http response",
+    "z": "52ae7c11408663f5",
+    "name": "Submission response",
+    "statusCode": "",
+    "headers": {},
+    "x": 1880,
+    "y": 1580,
+    "wires": []
+  },
+  {
+    "id": "5fde6ac114a533ac",
+    "type": "catch",
+    "z": "52ae7c11408663f5",
+    "name": "Catch secure portal errors",
+    "scope": null,
+    "uncaught": false,
+    "x": 180,
+    "y": 1680,
+    "wires": [
+      [
+        "96a7581dfd6f214a"
+      ]
+    ]
+  },
+  {
+    "id": "96a7581dfd6f214a",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Safe API error",
+    "func": "msg.statusCode=msg.statusCode||500;msg.payload={ok:false,error:(msg.error&&msg.error.message)||'ContinIo request failed'};return msg.req?[msg,null]:[null,msg];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 430,
+    "y": 1680,
+    "wires": [
+      [
+        "9cb1e78f02a76b01"
+      ],
+      [
+        "dde0200daf15b34a"
+      ]
+    ]
+  },
+  {
+    "id": "dde0200daf15b34a",
+    "type": "debug",
+    "z": "52ae7c11408663f5",
+    "name": "Secure portal errors",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 710,
+    "y": 1710,
+    "wires": []
+  },
+  {
+    "id": "9cb1e78f02a76b01",
+    "type": "http response",
+    "z": "52ae7c11408663f5",
+    "name": "Secure API error response",
+    "statusCode": "",
+    "headers": {},
+    "x": 710,
+    "y": 1650,
+    "wires": []
+  },
+  {
+    "id": "f8da2e573aa5206f",
+    "type": "comment",
+    "z": "52ae7c11408663f5",
+    "name": "SECURITY SETUP",
+    "info": "IMPORTANT: Change the admin registration code inside the \u201cValidate registration\u201d function node. Search for CHANGE_ME_2026 and replace it before allowing registration.\n\nHome: http://localhost:1880/dashboard/home\nTeacher: http://localhost:1880/dashboard/teacher\nAdmin: http://localhost:1880/dashboard/admin\n\nPasswords are salted and hashed in continio_accounts. Sessions use HttpOnly SameSite cookies and expire after 8 hours. Login locks an IP for 15 minutes after 5 failed attempts. For deployment beyond localhost, use HTTPS and add Secure to the session cookie.",
+    "x": 170,
+    "y": 1760,
+    "wires": []
+  },
+  {
+    "id": "368e4ef5d12d353b",
+    "type": "inject",
+    "z": "52ae7c11408663f5",
+    "name": "Attendance clock (every 10 seconds)",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "10",
+    "crontab": "",
+    "once": true,
+    "onceDelay": 1,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 210,
+    "y": 520,
+    "wires": [
+      [
+        "50b178d92bf567ff"
+      ]
+    ]
+  },
+  {
+    "id": "50b178d92bf567ff",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Create active sessions",
+    "func": "msg.topic=\"INSERT INTO attendance_sessions (timetable_id,session_date,start_time,end_time,status) SELECT tt.id,CURDATE(),TIMESTAMP(CURDATE(),tt.start_time),TIMESTAMP(CURDATE(),tt.end_time),'active' FROM timetable tt WHERE tt.active=1 AND tt.day_of_week=DAYNAME(CURDATE()) AND tt.start_time IS NOT NULL AND tt.end_time IS NOT NULL AND CURTIME() BETWEEN tt.start_time AND tt.end_time ON DUPLICATE KEY UPDATE start_time=VALUES(start_time),end_time=VALUES(end_time),status=IF(status='submitted',status,'active')\";msg.payload=[];return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 460,
+    "y": 520,
+    "wires": [
+      [
+        "40b5bc39e83df746"
+      ]
+    ]
+  },
+  {
+    "id": "40b5bc39e83df746",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Start scheduled sessions",
+    "x": 710,
+    "y": 520,
+    "wires": [
+      [
+        "a7d86f38ecc328fe"
+      ]
+    ]
+  },
+  {
+    "id": "a7d86f38ecc328fe",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Prepare attendance rows",
+    "func": "msg.topic=\"INSERT INTO attendance (session_id,student_id,automated_status) SELECT ses.id,st.id,'review' FROM attendance_sessions ses JOIN timetable tt ON tt.id=ses.timetable_id JOIN students st ON st.class_id=tt.class_id AND st.active=1 WHERE ses.session_date=CURDATE() AND ses.status='active' ON DUPLICATE KEY UPDATE session_id=VALUES(session_id)\";msg.payload=[];return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 960,
+    "y": 520,
+    "wires": [
+      [
+        "48d6a9f5b633dcf9"
+      ]
+    ]
+  },
+  {
+    "id": "48d6a9f5b633dcf9",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Initialize session attendance",
+    "x": 1210,
+    "y": 520,
+    "wires": [
+      [
+        "ff42319a72427d5a"
+      ]
+    ]
+  },
+  {
+    "id": "ff42319a72427d5a",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Close elapsed sessions",
+    "func": "msg.topic=\"UPDATE attendance_sessions ses JOIN timetable tt ON tt.id=ses.timetable_id SET ses.status='teacher_review',ses.end_time=COALESCE(ses.end_time,NOW()) WHERE ses.session_date=CURDATE() AND ses.status='active' AND CURTIME()>tt.end_time\";msg.payload=[];return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 460,
+    "y": 580,
+    "wires": [
+      [
+        "7e5f52dc94056750"
+      ]
+    ]
+  },
+  {
+    "id": "7e5f52dc94056750",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Move sessions to review",
+    "x": 710,
+    "y": 580,
+    "wires": []
+  },
+  {
+    "id": "e6572f359472ea39",
+    "type": "inject",
+    "z": "52ae7c11408663f5",
+    "name": "Wave clock (every 5 seconds)",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "5",
+    "crontab": "",
+    "once": true,
+    "onceDelay": 2,
+    "topic": "",
+    "payload": "",
+    "payloadType": "date",
+    "x": 190,
+    "y": 700,
+    "wires": [
+      [
+        "9ae56e5be49c722d"
+      ]
+    ]
+  },
+  {
+    "id": "9ae56e5be49c722d",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Find due verification waves",
+    "func": "msg.topic=\"SELECT ses.id AS session_id,tt.class_id,r.room_number,r.camera_id,w.wave_number,JSON_ARRAYAGG(JSON_OBJECT('id',st.id,'name',st.name,'usn',st.usn,'embedding',st.face_embedding,'checked_in',IF(EXISTS(SELECT 1 FROM student_checkins ci WHERE ci.session_id=ses.id AND ci.student_id=st.id),TRUE,FALSE))) AS students FROM attendance_sessions ses JOIN timetable tt ON tt.id=ses.timetable_id JOIN rooms r ON r.id=tt.room_id JOIN (SELECT 1 AS wave_number,0.25 AS fraction UNION ALL SELECT 2,0.50 UNION ALL SELECT 3,0.75) w JOIN students st ON st.class_id=tt.class_id AND st.active=1 WHERE tt.active=1 AND ses.session_date=CURDATE() AND ses.status='active' AND NOW()>=TIMESTAMPADD(SECOND,FLOOR(TIMESTAMPDIFF(SECOND,ses.start_time,ses.end_time)*w.fraction),ses.start_time) AND NOT EXISTS (SELECT 1 FROM wave_results wr WHERE wr.session_id=ses.id AND wr.wave_number=w.wave_number) GROUP BY ses.id,tt.class_id,r.room_number,r.camera_id,w.wave_number ORDER BY ses.id,w.wave_number\";msg.payload=[];return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 450,
+    "y": 700,
+    "wires": [
+      [
+        "f099f7bfefd7aaa3"
+      ]
+    ]
+  },
+  {
+    "id": "f099f7bfefd7aaa3",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Load due waves",
+    "x": 690,
+    "y": 700,
+    "wires": [
+      [
+        "749a24dc70ed81f8"
+      ]
+    ]
+  },
+  {
+    "id": "749a24dc70ed81f8",
+    "type": "split",
+    "z": "52ae7c11408663f5",
+    "name": "One camera scan per wave",
+    "splt": "\\n",
+    "spltType": "str",
+    "arraySplt": 1,
+    "arraySpltType": "len",
+    "stream": false,
+    "addname": "",
+    "property": "payload",
+    "x": 920,
+    "y": 700,
+    "wires": [
+      [
+        "ce1b7c089f4ea748"
+      ]
+    ]
+  },
+  {
+    "id": "ce1b7c089f4ea748",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Build real camera scan request",
+    "func": "const row=msg.payload||{};let students=row.students;if(typeof students==='string'){try{students=JSON.parse(students)}catch(e){students=[]}}if(!Array.isArray(students)||!students.length)return null;const normalized=students.map(s=>{let embedding=s.embedding;if(typeof embedding==='string'){try{embedding=JSON.parse(embedding)}catch(e){embedding=null}}return {id:Number(s.id),name:s.name,usn:s.usn,checked_in:!!s.checked_in,embedding:Array.isArray(embedding)?embedding:null}});msg.waveContext={session_id:Number(row.session_id),wave_number:Number(row.wave_number),students:normalized.map(s=>({id:s.id,name:s.name,usn:s.usn,checked_in:s.checked_in}))};msg.method='POST';msg.url='http://127.0.0.1:5055/scan';msg.headers={'Content-Type':'application/json'};msg.payload={session_id:msg.waveContext.session_id,wave_number:msg.waveContext.wave_number,class_id:Number(row.class_id),room:String(row.room_number),camera_id:row.camera_id,students:normalized};return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1190,
+    "y": 700,
+    "wires": [
+      [
+        "e4283b8a92157a0e"
+      ]
+    ]
+  },
+  {
+    "id": "e4283b8a92157a0e",
+    "type": "http request",
+    "z": "52ae7c11408663f5",
+    "name": "Count gate / face recognition service",
+    "method": "use",
+    "ret": "obj",
+    "paytoqs": "ignore",
+    "url": "",
+    "tls": "",
+    "persist": false,
+    "proxy": "",
+    "insecureHTTPParser": false,
+    "authType": "",
+    "senderr": false,
+    "headers": [],
+    "x": 1430,
+    "y": 700,
+    "wires": [
+      [
+        "cba6d70259b4d607"
+      ]
+    ]
+  },
+  {
+    "id": "cba6d70259b4d607",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Store real camera wave",
+    "func": "const ctx=msg.waveContext,response=msg.payload||{};if(!ctx||!Array.isArray(response.detections)){node.error('Camera service returned an invalid response',msg);return null;}const found=new Map(response.detections.map(d=>[Number(d.student_id),Number(d.confidence)]));const rows=ctx.students.map(s=>({id:s.id,result:s.checked_in&&found.has(s.id)?'present':'absent',confidence:s.checked_in&&found.has(s.id)?found.get(s.id):null}));const placeholders=rows.map(()=>'(?,?,?,?,?)').join(',');const values=[];for(const r of rows)values.push(ctx.session_id,r.id,ctx.wave_number,r.result,r.confidence);msg.topic='INSERT INTO wave_results (session_id,student_id,wave_number,result,confidence) VALUES '+placeholders+' ON DUPLICATE KEY UPDATE result=VALUES(result),confidence=VALUES(confidence),detected_at=CURRENT_TIMESTAMP';msg.payload=values;msg.completedWave=ctx.wave_number;msg.completedSession=ctx.session_id;msg.scanMode=response.scan_mode;msg.visibleCount=response.visible_count;return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1660,
+    "y": 700,
+    "wires": [
+      [
+        "b5183bb8b764654b"
+      ]
+    ]
+  },
+  {
+    "id": "b5183bb8b764654b",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Save verified wave",
+    "x": 1880,
+    "y": 700,
+    "wires": [
+      [
+        "03405fea84b2912e"
+      ]
+    ]
+  },
+  {
+    "id": "03405fea84b2912e",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Calculate after Wave 3",
+    "func": "if(Number(msg.completedWave)!==3)return null;msg.topic=\"INSERT INTO attendance (session_id,student_id,automated_status,final_status) SELECT session_id,student_id,CASE WHEN COUNT(*)<3 THEN 'review' WHEN SUM(result='present')=3 THEN 'present' WHEN SUM(result='present')=2 THEN 'review' ELSE 'absent' END,CASE WHEN COUNT(*)<3 THEN NULL WHEN SUM(result='present')=3 THEN 'present' WHEN SUM(result='present')=2 THEN NULL ELSE 'absent' END FROM wave_results WHERE session_id=? GROUP BY session_id,student_id ON DUPLICATE KEY UPDATE automated_status=VALUES(automated_status),final_status=VALUES(final_status)\";msg.payload=[Number(msg.completedSession)];return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 2100,
+    "y": 700,
+    "wires": [
+      [
+        "2bba3e8cefe71742"
+      ]
+    ]
+  },
+  {
+    "id": "2bba3e8cefe71742",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Save automated attendance",
+    "x": 2330,
+    "y": 700,
+    "wires": []
+  },
+  {
+    "id": "a12e02e8b24cffd9",
+    "type": "catch",
+    "z": "52ae7c11408663f5",
+    "name": "Catch camera service errors",
+    "scope": [
+      "e4283b8a92157a0e",
+      "cba6d70259b4d607"
+    ],
+    "uncaught": false,
+    "x": 210,
+    "y": 760,
+    "wires": [
+      [
+        "23f1538904135ae3"
+      ]
+    ]
+  },
+  {
+    "id": "23f1538904135ae3",
+    "type": "debug",
+    "z": "52ae7c11408663f5",
+    "name": "Camera service errors",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 470,
+    "y": 760,
+    "wires": []
+  },
+  {
+    "id": "31336a03a744d0fb",
+    "type": "http in",
+    "z": "52ae7c11408663f5",
+    "name": "Student check-in API (RFID or USN)",
+    "url": "/continio-api/rfid-checkin",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 190,
+    "y": 860,
+    "wires": [
+      [
+        "e8b933530e2d476d"
+      ]
+    ]
+  },
+  {
+    "id": "e8b933530e2d476d",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Validate check-in device",
+    "func": "const key=String((msg.req&&msg.req.headers&&msg.req.headers['x-continio-key'])||'');const p=msg.payload||{};const uid=String(p.rfid_uid||'').trim();const usn=String(p.usn||'').trim().toUpperCase();const expectedKey=String(env.get('CONTINIO_DEVICE_KEY')||'');if(!expectedKey||key!==expectedKey){msg.statusCode=401;msg.payload={ok:false,error:'Invalid device key'};return [null,msg];}if((!uid&&!usn)||(uid&&usn)){msg.statusCode=400;msg.payload={ok:false,error:'Send exactly one of rfid_uid or usn'};return [null,msg];}msg.checkinMethod=uid?'rfid':'usn';msg.checkinIdentifier=uid||usn;msg.topic=\"SELECT ses.id AS session_id,st.id AS student_id,st.name,st.usn,c.name AS class_name,tt.period_number,sub.name AS subject,r.room_number FROM students st JOIN classes c ON c.id=st.class_id JOIN timetable tt ON tt.class_id=st.class_id AND tt.active=1 JOIN attendance_sessions ses ON ses.timetable_id=tt.id AND ses.session_date=CURDATE() AND ses.status='active' JOIN subjects sub ON sub.id=tt.subject_id JOIN rooms r ON r.id=tt.room_id WHERE ((?<>'' AND st.rfid_uid=?) OR (?<>'' AND UPPER(st.usn)=?)) AND st.active=1 AND NOW() BETWEEN ses.start_time AND ses.end_time ORDER BY ses.id DESC LIMIT 1\";msg.payload=[uid,uid,usn,usn];return [msg,null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 430,
+    "y": 860,
+    "wires": [
+      [
+        "cefe4091d81cf485"
+      ],
+      [
+        "673191f4afd7cb63"
+      ]
+    ]
+  },
+  {
+    "id": "cefe4091d81cf485",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Find student active session",
+    "x": 680,
+    "y": 840,
+    "wires": [
+      [
+        "3bb9c914577bb2d9"
+      ]
+    ]
+  },
+  {
+    "id": "3bb9c914577bb2d9",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "Prepare student check-in",
+    "func": "const row=Array.isArray(msg.payload)?msg.payload[0]:null;if(!row){msg.statusCode=404;msg.payload={ok:false,error:'No active class or matching student found'};return [null,msg];}msg.checkin=row;const isRfid=msg.checkinMethod==='rfid';msg.topic='INSERT INTO student_checkins (session_id,student_id,checkin_method,rfid_uid,entered_usn,checked_in_at) VALUES (?,?,?,?,?,NOW()) ON DUPLICATE KEY UPDATE checkin_method=VALUES(checkin_method),rfid_uid=VALUES(rfid_uid),entered_usn=VALUES(entered_usn),checked_in_at=VALUES(checked_in_at)';msg.payload=[row.session_id,row.student_id,msg.checkinMethod,isRfid?msg.checkinIdentifier:null,isRfid?null:msg.checkinIdentifier];return [msg,null];",
+    "outputs": 2,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 930,
+    "y": 840,
+    "wires": [
+      [
+        "867976638f4497a2"
+      ],
+      [
+        "673191f4afd7cb63"
+      ]
+    ]
+  },
+  {
+    "id": "867976638f4497a2",
+    "type": "mysql",
+    "z": "52ae7c11408663f5",
+    "mydb": "73b2fe2b80e67144",
+    "name": "Save student check-in",
+    "x": 1170,
+    "y": 840,
+    "wires": [
+      [
+        "2b400385253cbae4"
+      ]
+    ]
+  },
+  {
+    "id": "2b400385253cbae4",
+    "type": "function",
+    "z": "52ae7c11408663f5",
+    "name": "RFID welcome response",
+    "func": "const r=msg.checkin;msg.statusCode=200;msg.payload={ok:true,message:msg.checkinMethod==='usn'?'USN check-in successful':'RFID check-in successful',checkin_method:msg.checkinMethod,session_id:r.session_id,student_id:r.student_id,name:r.name,usn:r.usn,class:r.class_name,period:r.period_number,subject:r.subject,room:r.room_number};return msg;",
+    "outputs": 1,
+    "timeout": 0,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1400,
+    "y": 840,
+    "wires": [
+      [
+        "673191f4afd7cb63"
+      ]
+    ]
+  },
+  {
+    "id": "673191f4afd7cb63",
+    "type": "http response",
+    "z": "52ae7c11408663f5",
+    "name": "Student check-in response",
+    "statusCode": "",
+    "headers": {},
+    "x": 1630,
+    "y": 860,
+    "wires": []
+  }
+]
